@@ -7,7 +7,10 @@ _CONFIG_PATH = Path("config.json")
 
 @dataclass
 class Config:
-    min_score: float = 0.5
+    pixel_thresh: float = 0.3
+    box_thresh: float = 0.6
+    rec_thresh: float = 0.3
+    debug_detection: bool = False
 
 
 def get() -> Config:
