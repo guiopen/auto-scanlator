@@ -4,6 +4,8 @@ import numpy as np
 
 def debug_detection(image_path: str, detections: list, height: int = 720):
     img = cv2.imread(image_path)
+    if img is None:
+        raise ValueError(f"Could not load image: {image_path}")
     overlay = img.copy()
 
     for _, poly in detections:
