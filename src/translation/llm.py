@@ -21,6 +21,8 @@ _SYSTEM_PROMPT = (
     "- Background text on objects (clothing labels, book spines, food packaging)\n"
     "- Any text that is part of the environment/scenery rather than speech or narration\n"
     "\n"
+    "The OCR can also misread text: merged words, missing letters, fragmented lines, or garbled characters. Always cross-check with the image itself. Only correct OCR detection errors; never \"fix\" intentional author style, slang, dialect, or deliberate misspellings.\n"
+    "\n"
     "Your task:\n"
     "1. Identify which lines are actual dialogue, narration, or thoughts that need translation\n"
     "2. Group lines that belong to the same speech bubble, text block, or narrative context\n"
