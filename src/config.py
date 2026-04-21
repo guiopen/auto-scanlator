@@ -13,7 +13,7 @@ class Config:
     debug_detection: bool = False
 
 
-def get() -> Config:
+def get_config() -> Config:
     try:
         data = json.loads(_CONFIG_PATH.read_text())
     except FileNotFoundError:

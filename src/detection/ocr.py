@@ -1,9 +1,10 @@
 from paddleocr import PaddleOCR
 
-import config
+from config import Config
+
 
 class TextDetector:
-    def __init__(self, cfg: config.Config):
+    def __init__(self, cfg: Config):
         self._ocr = PaddleOCR(
             use_doc_orientation_classify=False,
             use_doc_unwarping=False,
