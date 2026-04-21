@@ -1,30 +1,89 @@
+import base64
 import json
 import urllib.request
+from pathlib import Path
 
-_URL = "http://127.0.0.1:8080/completion"
+_SYSTEM_PROMPT = (
+    "You are an expert manga/comic translator.\n"
+    "\n"
+    "You receive:\n"
+    "1. An image of a comic/manga page\n"
+    "2. A list of text lines detected by OCR, each with a unique ID\n"
+    "\n"
+    "IMPORTANT: The OCR often makes mistakes and detects text that SHOULD NOT be translated.\n"
+    "This includes but is not limited to:\n"
+    "- Sound effects (BOOM, POW, CRASH, BAM, ZAP, etc.)\n"
+    "- Street signs, traffic signs, store signs in the background\n"
+    "- Computer screens, monitors, panels with system text\n"
+    "- License plates, posters, advertisements on walls\n"
+    "- Chapter titles or volume numbers that are part of the page design\n"
+    "- Artist names, copyright notices, publisher logos\n"
+    "- Background text on objects (clothing labels, book spines, food packaging)\n"
+    "- Any text that is part of the environment/scenery rather than speech or narration\n"
+    "\n"
+    "Your task:\n"
+    "1. Identify which lines are actual dialogue, narration, or thoughts that need translation\n"
+    "2. Group lines that belong to the same speech bubble, text block, or narrative context\n"
+    "3. Translate each group as a cohesive text block (not line by line)\n"
+    "4. Completely IGNORE any line that is a sound effect, background text, or otherwise should not be translated\n"
+    "\n"
+    "CRITICAL: Do NOT return blocks for lines that should not be translated. Simply omit them entirely.\n"
+    "Only return blocks for text that genuinely needs translation.\n"
+    "\n"
+    "Return ONLY a JSON array of blocks:\n"
+    "[\n"
+    "  {\n"
+    '    "lines": [0, 1, 2],\n'
+    '    "translated_text": "Natural translation of the entire block"\n'
+    "  }\n"
+    "]\n"
+    "\n"
+    "Rules:\n"
+    "- Each line ID must appear in exactly ONE block, or be omitted if it should not be translated\n"
+    "- translated_text should be natural and fluent, not literal word-by-word\n"
+    "- If the original text spans multiple lines in a bubble, translate it as continuous prose\n"
+    "- Never include sound effects, background signs, or environmental text\n"
+    "- Even if speech bubbles are connected, treat each one as a separate block"
+)
 
 
-def translate(texts: list[str], source_lang: str, target_lang: str) -> dict[str, str]:
-    prompt = (
-        f"Translate the following comic book speech bubble texts from {source_lang} to {target_lang}.\n"
-        f"Return ONLY a JSON object mapping each original text to its translation.\n"
-        f"Texts: {json.dumps(texts, ensure_ascii=False)}"
-    )
-    payload = json.dumps(
-        {
-            "prompt": prompt,
-            "n_predict": 2048,
-            "json_schema": {
-                "type": "object",
-                "additionalProperties": {"type": "string"},
-            },
-        }
-    ).encode()
+def translate_page(
+    image_path: str,
+    lines: list[tuple[str, tuple[tuple[int, int], ...]]],
+    api_url: str,
+):
+    prompt_lines = "\n".join(f"Line {i}: {text}" for i, (text, _) in enumerate(lines))
+
+    full_prompt = _SYSTEM_PROMPT + "\n\nLines detected:\n" + prompt_lines
+    print(f"\n[LLM Translator] Prompt sent:\n{full_prompt}\n")
+
+    img_bytes = Path(image_path).read_bytes()
+    b64 = base64.b64encode(img_bytes).decode("ascii")
+
+    payload = {
+        "model": "gemma-4",
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/png;base64,{b64}"},
+                    },
+                    {"type": "text", "text": full_prompt},
+                ],
+            }
+        ],
+        "max_tokens": 32768,
+    }
+
     req = urllib.request.Request(
-        _URL, data=payload, headers={"Content-Type": "application/json"}
+        api_url,
+        data=json.dumps(payload).encode(),
+        headers={"Content-Type": "application/json"},
     )
+
     with urllib.request.urlopen(req) as resp:
-        response = json.loads(resp.read())
-        result = json.loads(response["content"])
-        print(f"Translation result: {json.dumps(result, ensure_ascii=False, indent=2)}")
-    return result
+        raw = json.loads(resp.read())
+
+    print(f"\n[LLM Translator] Raw response:\n{json.dumps(raw, indent=2)}")

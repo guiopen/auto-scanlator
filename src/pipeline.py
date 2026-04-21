@@ -1,5 +1,6 @@
 from config import get_config
 from detection.ocr import TextDetector
+from translation.llm import translate_page
 from utils import debug_detection
 
 cfg = get_config()
@@ -12,3 +13,5 @@ def run_pipeline(image_paths: list[str]):
 
         if cfg.debug_detection:
             debug_detection(image_path, detections)
+
+        translate_page(image_path, detections, cfg.llm_api_url)
