@@ -2,13 +2,16 @@ import base64
 import json
 import urllib.request
 from pathlib import Path
+from string import Template
 
-_SYSTEM_PROMPT = (
-    "You are an expert manga/comic translator.\n"
+_SYSTEM_PROMPT_TEMPLATE = Template(
+    "You are an expert comic translator.\n"
     "\n"
     "You receive:\n"
-    "1. An image of a comic/manga page\n"
+    "1. An image of a comic page\n"
     "2. A list of text lines detected by OCR, each with a unique ID\n"
+    "\n"
+    "The comic page is written in $source_lang and must be translated to $target_lang.\n"
     "\n"
     "IMPORTANT: The OCR often makes mistakes and detects text that SHOULD NOT be translated.\n"
     "This includes but is not limited to:\n"
@@ -53,10 +56,18 @@ def translate_page(
     image_path: str,
     lines: list[tuple[str, tuple[tuple[int, int], ...]]],
     api_url: str,
+    source_lang: str,
+    target_lang: str,
 ):
     prompt_lines = "\n".join(f"Line {i}: {text}" for i, (text, _) in enumerate(lines))
 
-    full_prompt = _SYSTEM_PROMPT + "\n\nLines detected:\n" + prompt_lines
+    full_prompt = (
+        _SYSTEM_PROMPT_TEMPLATE.substitute(
+            source_lang=source_lang, target_lang=target_lang
+        )
+        + "\n\nLines detected:\n"
+        + prompt_lines
+    )
     print(f"\n[LLM Translator] Prompt sent:\n{full_prompt}\n")
 
     img_bytes = Path(image_path).read_bytes()

@@ -20,5 +20,5 @@ pip install -r requirements.txt
 ## Uso
 
 ```bash
-python main.py paginas/1.png "brazilian portuguese" "english"
+python main.py comics/ --source-lang "pt" --target-lang "ENGLISH"
 ```

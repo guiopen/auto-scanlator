@@ -4,8 +4,9 @@ from config import Config
 
 
 class TextDetector:
-    def __init__(self, cfg: Config):
+    def __init__(self, cfg: Config, lang: str):
         self._ocr = PaddleOCR(
+            lang=lang,
             use_doc_orientation_classify=False,
             use_doc_unwarping=False,
             use_textline_orientation=False,
