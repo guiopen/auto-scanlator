@@ -22,6 +22,9 @@ def _run_pipeline(
         cfg.llm_api_url,
         llm_source_lang,
         target_lang,
+        api_key=cfg.llm_api_key,
+        model=cfg.llm_model,
+        extra_parameters=cfg.llm_extra_parameters,
     )
 
 

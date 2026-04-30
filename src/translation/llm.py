@@ -58,6 +58,9 @@ def translate_page(
     api_url: str,
     source_lang: str,
     target_lang: str,
+    api_key: str = "",
+    model: str = "",
+    extra_parameters: dict | None = None,
 ):
     prompt_lines = "\n".join(f"Line {i}: {text}" for i, (text, _) in enumerate(lines))
 
@@ -74,7 +77,7 @@ def translate_page(
     b64 = base64.b64encode(img_bytes).decode("ascii")
 
     payload = {
-        "model": "gemma-4",
+        "model": model,
         "messages": [
             {
                 "role": "user",
@@ -90,10 +93,17 @@ def translate_page(
         "max_tokens": 32768,
     }
 
+    if extra_parameters:
+        payload.update(extra_parameters)
+
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
     req = urllib.request.Request(
         api_url,
         data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json"},
+        headers=headers,
     )
 
     with urllib.request.urlopen(req) as resp:

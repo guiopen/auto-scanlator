@@ -1,5 +1,5 @@
 import json
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, field, fields
 from pathlib import Path
 
 _CONFIG_PATH = Path("config.json")
@@ -12,6 +12,9 @@ class Config:
     rec_thresh: float = 0.3
     debug_detection: bool = False
     llm_api_url: str = "http://127.0.0.1:8080/v1/chat/completions"
+    llm_api_key: str = ""
+    llm_model: str = ""
+    llm_extra_parameters: dict = field(default_factory=dict)
 
 
 def get_config() -> Config:

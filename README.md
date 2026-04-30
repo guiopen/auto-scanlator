@@ -12,7 +12,7 @@ source .venv/bin/activate
 
 2. Instale as dependências:
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
 3. Certifique-se de ter um LLM rodando em `http://127.0.0.1:8080`.
