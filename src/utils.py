@@ -1,3 +1,6 @@
+import json
+import re
+
 import cv2
 import numpy as np
 
@@ -133,3 +136,24 @@ def debug_detection(image_path: str, detections: list, height: int = 720):
     cv2.imshow("Detection", result)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+
+def debug_inpaint(inpainted: np.ndarray, height: int = 720):
+    h, w = inpainted.shape[:2]
+    scale = height / h
+    resized = cv2.resize(inpainted, (int(w * scale), height))
+    cv2.imshow("Inpaint", resized)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+
+def debug_translation(blocks: list[dict]):
+    text = json.dumps(blocks, ensure_ascii=False, indent=2)
+    text = re.sub(
+        r'\[\n( *-?\d+,\n)* *-?\d+\n *\]',
+        lambda m: '[' + ', '.join(
+            x.strip().rstrip(',') for x in m.group(0).split('\n')[1:-1]
+        ) + ']',
+        text,
+    )
+    print(text)

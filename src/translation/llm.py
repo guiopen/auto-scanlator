@@ -24,7 +24,7 @@ _SYSTEM_PROMPT_TEMPLATE = Template(
     "- Background text on objects (clothing labels, book spines, food packaging)\n"
     "- Any text that is part of the environment/scenery rather than speech or narration\n"
     "\n"
-    "The OCR can also misread text: merged words, missing letters, fragmented lines, or garbled characters. Always cross-check with the image itself. Only correct OCR detection errors; never \"fix\" intentional author style, slang, dialect, or deliberate misspellings.\n"
+    'The OCR can also misread text: merged words, missing letters, fragmented lines, or garbled characters. Always cross-check with the image itself. Only correct OCR detection errors; never "fix" intentional author style, slang, dialect, or deliberate misspellings.\n'
     "\n"
     "Your task:\n"
     "1. Identify which lines are actual dialogue, narration, or thoughts that need translation\n"
@@ -71,7 +71,6 @@ def translate_page(
         + "\n\nLines detected:\n"
         + prompt_lines
     )
-    print(f"\n[LLM Translator] Prompt sent:\n{full_prompt}\n")
 
     img_bytes = Path(image_path).read_bytes()
     b64 = base64.b64encode(img_bytes).decode("ascii")
@@ -109,4 +108,15 @@ def translate_page(
     with urllib.request.urlopen(req) as resp:
         raw = json.loads(resp.read())
 
-    print(f"\n[LLM Translator] Raw response:\n{json.dumps(raw, indent=2)}")
+    content = raw.get("choices", [{}])[0].get("message", {}).get("content", "")
+    content = content.strip()
+    if content.startswith("```"):
+        content = content.split("\n", 1)[1] if "\n" in content else content[3:]
+        content = content.rsplit("```", 1)[0].strip()
+    try:
+        blocks = json.loads(content)
+        if isinstance(blocks, list):
+            return blocks
+    except (json.JSONDecodeError, TypeError):
+        pass
+    return []

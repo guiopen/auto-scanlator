@@ -3,7 +3,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from pipeline import run_comic_translation
+from pipeline import process_pages
 from utils import SUPPORTED_LANGUAGES
 
 
@@ -48,4 +48,4 @@ def cli():
         )
 
     image_paths = _resolve_images(Path(args.image_path))
-    run_comic_translation([str(p) for p in image_paths], source_lang, args.target_lang)
+    process_pages([str(p) for p in image_paths], source_lang, args.target_lang)

@@ -11,6 +11,8 @@ class Config:
     box_thresh: float = 0.6
     rec_thresh: float = 0.3
     debug_detection: bool = False
+    debug_inpaint: bool = False
+    debug_translation: bool = False
     llm_api_url: str = "http://127.0.0.1:8080/v1/chat/completions"
     llm_api_key: str = ""
     llm_model: str = ""

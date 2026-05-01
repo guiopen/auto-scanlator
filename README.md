@@ -4,10 +4,9 @@ Ferramenta de tradução automática de quadrinhos.
 
 ## Setup
 
-1. Crie o ambiente virtual com Python 3.12 e ative:
+1. Instale o uv:
 ```bash
-python3.12 -m venv .venv
-source .venv/bin/activate
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 2. Instale as dependências:
@@ -20,5 +19,5 @@ uv sync
 ## Uso
 
 ```bash
-python main.py comics/ --source-lang "pt" --target-lang "ENGLISH"
+uv run main.py comics/ --source-lang "pt" --target-lang "ENGLISH"
 ```

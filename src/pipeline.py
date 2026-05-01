@@ -1,7 +1,8 @@
 from config import get_config
 from detection.ocr import TextDetector
+from inpainting.lama import inpaint_page
 from translation.llm import translate_page
-from utils import SUPPORTED_LANGUAGES, debug_detection
+from utils import SUPPORTED_LANGUAGES, debug_detection, debug_inpaint, debug_translation
 
 
 def _run_pipeline(
@@ -12,11 +13,10 @@ def _run_pipeline(
     target_lang: str,
 ):
     detections = detector.detect(image_path)
-
     if cfg.debug_detection:
         debug_detection(image_path, detections)
 
-    translate_page(
+    blocks = translate_page(
         image_path,
         detections,
         cfg.llm_api_url,
@@ -26,9 +26,15 @@ def _run_pipeline(
         model=cfg.llm_model,
         extra_parameters=cfg.llm_extra_parameters,
     )
+    if cfg.debug_translation:
+        debug_translation(blocks)
+
+    result = inpaint_page(image_path, detections, blocks)
+    if cfg.debug_inpaint and result is not None:
+        debug_inpaint(result)
 
 
-def run_comic_translation(image_paths: list[str], source_lang: str, target_lang: str):
+def process_pages(image_paths: list[str], source_lang: str, target_lang: str):
     cfg = get_config()
     detector = TextDetector(cfg, source_lang)
 
