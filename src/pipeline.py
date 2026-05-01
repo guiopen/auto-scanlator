@@ -1,8 +1,11 @@
-from config import get_config
-from detection.ocr import TextDetector
-from inpainting.lama import inpaint_page
-from translation.llm import translate_page
-from utils import SUPPORTED_LANGUAGES, debug_detection, debug_inpaint, debug_translation
+from src.config import get_config
+from src.detection.debug import debug_detection
+from src.detection.ocr import TextDetector
+from src.inpainting.debug import debug_inpaint
+from src.inpainting.lama import inpaint_page
+from src.languages import SUPPORTED_LANGUAGES
+from src.translation.debug import debug_translation
+from src.translation.llm import translate_page
 
 
 def _run_pipeline(

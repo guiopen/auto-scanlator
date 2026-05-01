@@ -20,7 +20,7 @@ def inpaint_page(
     detections: list[tuple[str, tuple[tuple[int, int], ...]]],
     blocks: list[dict],
 ) -> np.ndarray | None:
-    from inpainting.mask import create_inpaint_mask
+    from src.inpainting.mask import create_inpaint_mask
 
     img = cv2.imread(image_path)
     if img is None:

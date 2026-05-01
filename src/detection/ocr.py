@@ -1,6 +1,6 @@
 from paddleocr import PaddleOCR
 
-from config import Config
+from src.config import Config
 
 
 class TextDetector:

@@ -1,27 +1,9 @@
 import argparse
 from pathlib import Path
 
-from PIL import Image
-
-from pipeline import process_pages
-from utils import SUPPORTED_LANGUAGES
-
-
-def _resolve_images(path: Path) -> list[Path]:
-    paths = sorted(path.iterdir()) if path.is_dir() else [path]
-    result = []
-    for p in paths:
-        if p.is_file():
-            try:
-                with Image.open(p):
-                    result.append(p)
-            except (OSError, ValueError):
-                pass
-
-    if not result:
-        raise ValueError(f"No valid images found in: {path}")
-
-    return result
+from src.images import resolve_images
+from src.languages import SUPPORTED_LANGUAGES
+from src.pipeline import process_pages
 
 
 def cli():
@@ -47,5 +29,5 @@ def cli():
             f"Supported codes: {supported}"
         )
 
-    image_paths = _resolve_images(Path(args.image_path))
+    image_paths = resolve_images(Path(args.image_path))
     process_pages([str(p) for p in image_paths], source_lang, args.target_lang)
