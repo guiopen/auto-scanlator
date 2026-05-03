@@ -3,6 +3,9 @@ import numpy as np
 
 
 def inpaint(img: np.ndarray, mask: np.ndarray) -> np.ndarray:
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+    mask = cv2.dilate(mask, kernel, iterations=1)
+
     import torch
     from simple_lama_inpainting import SimpleLama
 
@@ -16,17 +19,9 @@ def inpaint(img: np.ndarray, mask: np.ndarray) -> np.ndarray:
 
 
 def inpaint_page(
-    image_path: str,
-    detections: list[tuple[str, tuple[tuple[int, int], ...]]],
-    blocks: list[dict],
+    img: np.ndarray,
+    mask: np.ndarray,
 ) -> np.ndarray | None:
-    from src.inpainting.mask import create_inpaint_mask
-
-    img = cv2.imread(image_path)
-    if img is None:
-        return None
-
-    mask = create_inpaint_mask(img.shape, detections, blocks)
     if mask.sum() == 0:
         return None
 

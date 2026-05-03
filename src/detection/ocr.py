@@ -1,3 +1,4 @@
+import numpy as np
 from paddleocr import PaddleOCR
 
 from src.config import Config
@@ -15,10 +16,10 @@ class TextDetector:
             text_rec_score_thresh=cfg.rec_thresh,
         )
 
-    def detect(self, image_path: str) -> list[tuple[str, tuple[tuple[int, int], ...]]]:
+    def detect(self, img: np.ndarray) -> list[tuple[str, tuple[tuple[int, int], ...]]]:
         return [
             (str(text), tuple((int(pt[0]), int(pt[1])) for pt in poly))
-            for res in self._ocr.predict(image_path)
+            for res in self._ocr.predict(img)
             for text, poly in zip(res["rec_texts"], res["rec_polys"])
             if str(text).strip()
         ]

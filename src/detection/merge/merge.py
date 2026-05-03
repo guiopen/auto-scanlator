@@ -29,18 +29,17 @@ def block_shape_hull(
 def hull_to_mask(img_shape: tuple[int, int, int], hull: np.ndarray) -> np.ndarray:
     mask = np.zeros(img_shape[:2], dtype=np.uint8)
     cv2.fillPoly(mask, [hull], 255)
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-    return cv2.dilate(mask, kernel, iterations=1)
+    return mask
 
 
-def create_inpaint_mask(
-    img_shape: tuple[int, int, int],
+def merge_detections(
+    img: np.ndarray,
     detections: list[tuple[str, tuple[tuple[int, int], ...]]],
     blocks: list[dict],
 ) -> np.ndarray:
-    mask = np.zeros(img_shape[:2], dtype=np.uint8)
+    mask = np.zeros(img.shape[:2], dtype=np.uint8)
     for block in blocks:
         hull = block_shape_hull(detections, block)
         if hull is not None:
-            mask |= hull_to_mask(img_shape, hull)
+            mask |= hull_to_mask(img.shape, hull)
     return mask

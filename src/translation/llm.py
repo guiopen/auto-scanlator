@@ -1,14 +1,18 @@
 import base64
 import json
 import urllib.request
-from pathlib import Path
+
+import cv2
+import numpy as np
 
 from src.translation.prompt import _SYSTEM_PROMPT_TEMPLATE
 
 
-def _encode_image(image_path: str) -> str:
-    img_bytes = Path(image_path).read_bytes()
-    return base64.b64encode(img_bytes).decode("ascii")
+def _encode_image(img: np.ndarray) -> str:
+    success, buffer = cv2.imencode(".png", img)
+    if not success:
+        raise ValueError("Failed to encode image")
+    return base64.b64encode(buffer.tobytes()).decode("ascii")
 
 
 def _build_api_payload(
@@ -67,7 +71,7 @@ def _parse_llm_response(content: str) -> list[dict]:
 
 
 def translate_page(
-    image_path: str,
+    img: np.ndarray,
     lines: list[tuple[str, tuple[tuple[int, int], ...]]],
     api_url: str,
     source_lang: str,
@@ -85,7 +89,7 @@ def translate_page(
         + prompt_lines
     )
 
-    b64 = _encode_image(image_path)
+    b64 = _encode_image(img)
     payload = _build_api_payload(model, b64, full_prompt, extra_parameters)
     content = _call_llm_api(api_url, payload, api_key)
     return _parse_llm_response(content)
