@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-from src.config import get_config
+from src.config import get_config, load_config
 from src.detection.debug import debug_detection
 from src.detection.merge.debug import debug_merge
 from src.detection.merge.merge import merge_detections
@@ -16,46 +16,37 @@ from src.translation.llm import translate_page
 
 
 def _run_pipeline(
-    cfg,
     detector: TextDetector,
     img: np.ndarray,
     llm_source_lang: str,
     target_lang: str,
 ):
+    config = get_config()
     detections = detector.detect(img)
-    if cfg.debug_detection:
+    if config.debug_detection:
         debug_detection(img, detections)
 
-    blocks = translate_page(
-        img,
-        detections,
-        cfg.llm_api_url,
-        llm_source_lang,
-        target_lang,
-        api_key=cfg.llm_api_key,
-        model=cfg.llm_model,
-        extra_parameters=cfg.llm_extra_parameters,
-    )
-    if cfg.debug_translation:
+    blocks = translate_page(img, detections, llm_source_lang, target_lang)
+    if config.debug_translation:
         debug_translation(blocks)
 
     inpaint_mask, merged_blocks = merge_detections(img, detections, blocks)
-    if cfg.debug_merge:
+    if config.debug_merge:
         debug_merge(img, inpaint_mask)
 
     cleaned_page = inpaint_page(img, inpaint_mask)
-    if cfg.debug_inpaint and cleaned_page is not None:
+    if config.debug_inpaint and cleaned_page is not None:
         debug_inpaint(cleaned_page)
 
     if cleaned_page is not None:
-        result = insert_text(cleaned_page, merged_blocks, cfg)
-        if cfg.debug_insertion:
+        result = insert_text(cleaned_page, merged_blocks)
+        if config.debug_insertion:
             debug_insertion(img, result)
 
 
 def process_pages(image_paths: list[str], source_lang: str, target_lang: str):
-    cfg = get_config()
-    detector = TextDetector(cfg, source_lang)
+    load_config()
+    detector = TextDetector(source_lang)
 
     llm_source_lang = SUPPORTED_LANGUAGES[source_lang]
 
@@ -63,4 +54,4 @@ def process_pages(image_paths: list[str], source_lang: str, target_lang: str):
         img = cv2.imread(image_path)
         if img is None:
             continue
-        _run_pipeline(cfg, detector, img, llm_source_lang, target_lang)
+        _run_pipeline(detector, img, llm_source_lang, target_lang)

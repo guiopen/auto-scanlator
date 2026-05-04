@@ -1,19 +1,20 @@
 import numpy as np
 from paddleocr import PaddleOCR
 
-from src.config import Config
+from src.config import get_config
 
 
 class TextDetector:
-    def __init__(self, cfg: Config, lang: str):
+    def __init__(self, lang: str):
+        config = get_config()
         self._ocr = PaddleOCR(
             lang=lang,
             use_doc_orientation_classify=False,
             use_doc_unwarping=False,
             use_textline_orientation=False,
-            text_det_thresh=cfg.pixel_thresh,
-            text_det_box_thresh=cfg.box_thresh,
-            text_rec_score_thresh=cfg.rec_thresh,
+            text_det_thresh=config.pixel_thresh,
+            text_det_box_thresh=config.box_thresh,
+            text_rec_score_thresh=config.rec_thresh,
         )
 
     def detect(self, img: np.ndarray) -> list[tuple[str, tuple[tuple[int, int], ...]]]:

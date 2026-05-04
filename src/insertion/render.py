@@ -8,7 +8,6 @@ from src.insertion.fit import FONT_PATH, fit_text
 def insert_text(
     img: np.ndarray,
     merged_blocks: list[dict],
-    cfg,
 ) -> np.ndarray:
     rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     pil_img = Image.fromarray(rgb)
@@ -20,7 +19,7 @@ def insert_text(
         if not text:
             continue
 
-        size, lines = fit_text(text, mask, cfg)
+        size, lines = fit_text(text, mask)
         font = ImageFont.truetype(str(FONT_PATH), size)
 
         for line_text, x, y in lines:

@@ -5,6 +5,7 @@ import urllib.request
 import cv2
 import numpy as np
 
+from src.config import get_config
 from src.translation.prompt import _SYSTEM_PROMPT_TEMPLATE
 
 
@@ -15,11 +16,10 @@ def _encode_image(img: np.ndarray) -> str:
     return base64.b64encode(buffer.tobytes()).decode("ascii")
 
 
-def _build_api_payload(
-    model: str, b64_image: str, prompt: str, extra_parameters: dict | None
-) -> dict:
+def _build_api_payload(b64_image: str, prompt: str) -> dict:
+    config = get_config()
     payload = {
-        "model": model,
+        "model": config.llm_model,
         "messages": [
             {
                 "role": "user",
@@ -34,18 +34,19 @@ def _build_api_payload(
         ],
         "max_tokens": 32768,
     }
-    if extra_parameters:
-        payload.update(extra_parameters)
+    if config.llm_extra_parameters:
+        payload.update(config.llm_extra_parameters)
     return payload
 
 
-def _call_llm_api(api_url: str, payload: dict, api_key: str) -> str:
+def _call_llm_api(payload: dict) -> str:
+    config = get_config()
     headers = {"Content-Type": "application/json"}
-    if api_key:
-        headers["Authorization"] = f"Bearer {api_key}"
+    if config.llm_api_key:
+        headers["Authorization"] = f"Bearer {config.llm_api_key}"
 
     req = urllib.request.Request(
-        api_url,
+        config.llm_api_url,
         data=json.dumps(payload).encode(),
         headers=headers,
     )
@@ -73,12 +74,8 @@ def _parse_llm_response(content: str) -> list[dict]:
 def translate_page(
     img: np.ndarray,
     lines: list[tuple[str, tuple[tuple[int, int], ...]]],
-    api_url: str,
     source_lang: str,
     target_lang: str,
-    api_key: str = "",
-    model: str = "",
-    extra_parameters: dict | None = None,
 ):
     prompt_lines = "\n".join(f"Line {i}: {text}" for i, (text, _) in enumerate(lines))
     full_prompt = (
@@ -90,6 +87,6 @@ def translate_page(
     )
 
     b64 = _encode_image(img)
-    payload = _build_api_payload(model, b64, full_prompt, extra_parameters)
-    content = _call_llm_api(api_url, payload, api_key)
+    payload = _build_api_payload(b64, full_prompt)
+    content = _call_llm_api(payload)
     return _parse_llm_response(content)

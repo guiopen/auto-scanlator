@@ -21,19 +21,31 @@ class Config:
     llm_extra_parameters: dict = field(default_factory=dict)
     font_min_size: int = 1
     font_max_size: int = 999
-    text_padding_h: float = 0.0
-    text_padding_v: float = 0.0
+    text_padding_h: float = 0.05
+    text_padding_v: float = 0.05
     line_spacing: float = 1.5
 
 
-def get_config() -> Config:
+_config: Config | None = None
+
+
+def load_config() -> Config:
+    global _config
     try:
         data = json.loads(_CONFIG_PATH.read_text())
     except FileNotFoundError:
-        return Config()
+        _config = Config()
+        return _config
 
     config = Config()
     for f in fields(Config):
         if f.name in data:
             setattr(config, f.name, data[f.name])
-    return config
+    _config = config
+    return _config
+
+
+def get_config() -> Config:
+    if _config is None:
+        raise RuntimeError("Config not loaded. Call load_config() first.")
+    return _config

@@ -3,6 +3,8 @@ from pathlib import Path
 import numpy as np
 from PIL import ImageFont
 
+from src.config import get_config
+
 FONT_PATH = Path(__file__).parent.parent.parent / "fonts" / "font.ttf"
 
 
@@ -21,9 +23,9 @@ def _greedy_wrap(
     y_start: int,
     font_height: int,
     line_step: int,
-    cfg,
     mask_bottom: int,
 ) -> list[tuple[str, int, int, int]] | None:
+    config = get_config()
     y = y_start
     lines = []
     i = 0
@@ -34,7 +36,7 @@ def _greedy_wrap(
             return None
 
         span_width = span[1] - span[0]
-        margin_h = int(span_width * cfg.text_padding_h / 200)
+        margin_h = int(span_width * config.text_padding_h / 2)
         left = span[0] + margin_h
         right = span[1] - margin_h
         available = right - left
@@ -72,14 +74,14 @@ def _greedy_wrap(
 def fit_text(
     text: str,
     mask: np.ndarray,
-    cfg,
 ) -> tuple[int, list[tuple[str, int, int]]]:
+    config = get_config()
     ys = np.where(mask.any(axis=1))[0]
     if len(ys) == 0:
         return 1, []
 
     hull_height = ys[-1] - ys[0]
-    margin_v = int(hull_height * cfg.text_padding_v / 200)
+    margin_v = int(hull_height * config.text_padding_v / 2)
     mask_top = int(ys[0]) + margin_v
     mask_bottom = int(ys[-1]) - margin_v
     max_vertical = mask_bottom - mask_top
@@ -91,19 +93,19 @@ def fit_text(
     if not words:
         return 1, []
 
-    max_size = min(cfg.font_max_size, max_vertical)
-    max_size = max(max_size, cfg.font_min_size)
+    max_size = min(config.font_max_size, max_vertical)
+    max_size = max(max_size, config.font_min_size)
 
-    best_size = cfg.font_min_size
+    best_size = config.font_min_size
     best_lines = []
 
-    lo, hi = cfg.font_min_size, max_size
+    lo, hi = config.font_min_size, max_size
     while lo <= hi:
         mid = (lo + hi) // 2
         font = ImageFont.truetype(str(FONT_PATH), mid)
         bbox = font.getbbox("Agy")
         font_height = bbox[3] - bbox[1]
-        line_step = int(font_height * cfg.line_spacing)
+        line_step = int(font_height * config.line_spacing)
 
         if font_height <= 0:
             hi = mid - 1
@@ -116,7 +118,6 @@ def fit_text(
             mask_top,
             font_height,
             line_step,
-            cfg,
             mask_bottom,
         )
 
@@ -130,7 +131,7 @@ def fit_text(
     font = ImageFont.truetype(str(FONT_PATH), best_size)
     bbox = font.getbbox("Agy")
     font_height = bbox[3] - bbox[1]
-    line_step = int(font_height * cfg.line_spacing)
+    line_step = int(font_height * config.line_spacing)
 
     if best_lines:
         total_height = font_height + (len(best_lines) - 1) * line_step
@@ -153,7 +154,7 @@ def fit_text(
         if span is None:
             break
         span_width = span[1] - span[0]
-        margin_h = int(span_width * cfg.text_padding_h / 200)
+        margin_h = int(span_width * config.text_padding_h / 2)
         left = span[0] + margin_h
         right = span[1] - margin_h
         word_w = font.getlength(word)
