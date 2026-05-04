@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 
-def debug_insertion(before: np.ndarray, after: np.ndarray, height: int = 1080):
+def debug_insertion(before: np.ndarray, after: np.ndarray, height: int = 720):
     side_by_side = np.hstack([before, after])
     h, w = side_by_side.shape[:2]
     scale = height / h
