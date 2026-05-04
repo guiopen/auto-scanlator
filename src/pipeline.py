@@ -8,6 +8,8 @@ from src.detection.merge.merge import merge_detections
 from src.detection.ocr import TextDetector
 from src.inpainting.debug import debug_inpaint
 from src.inpainting.lama import inpaint_page
+from src.insertion.debug import debug_insertion
+from src.insertion.render import insert_text
 from src.languages import SUPPORTED_LANGUAGES
 from src.translation.debug import debug_translation
 from src.translation.llm import translate_page
@@ -37,13 +39,18 @@ def _run_pipeline(
     if cfg.debug_translation:
         debug_translation(blocks)
 
-    mask = merge_detections(img, detections, blocks)
+    inpaint_mask, merged_blocks = merge_detections(img, detections, blocks)
     if cfg.debug_merge:
-        debug_merge(img, mask)
+        debug_merge(img, inpaint_mask)
 
-    result = inpaint_page(img, mask)
-    if cfg.debug_inpaint and result is not None:
-        debug_inpaint(result)
+    cleaned_page = inpaint_page(img, inpaint_mask)
+    if cfg.debug_inpaint and cleaned_page is not None:
+        debug_inpaint(cleaned_page)
+
+    if cleaned_page is not None:
+        result = insert_text(cleaned_page, merged_blocks, cfg)
+        if cfg.debug_insertion:
+            debug_insertion(img, result)
 
 
 def process_pages(image_paths: list[str], source_lang: str, target_lang: str):

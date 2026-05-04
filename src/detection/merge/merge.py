@@ -36,10 +36,13 @@ def merge_detections(
     img: np.ndarray,
     detections: list[tuple[str, tuple[tuple[int, int], ...]]],
     blocks: list[dict],
-) -> np.ndarray:
-    mask = np.zeros(img.shape[:2], dtype=np.uint8)
+) -> tuple[np.ndarray, list[dict]]:
+    inpaint_mask = np.zeros(img.shape[:2], dtype=np.uint8)
+    merged_blocks = []
     for block in blocks:
         hull = block_shape_hull(detections, block)
         if hull is not None:
-            mask |= hull_to_mask(img.shape, hull)
-    return mask
+            block_mask = hull_to_mask(img.shape, hull)
+            inpaint_mask |= block_mask
+            merged_blocks.append({"mask": block_mask, "text": block["translated_text"]})
+    return inpaint_mask, merged_blocks
