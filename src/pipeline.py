@@ -2,16 +2,18 @@ import cv2
 import numpy as np
 
 from src.config import get_config, load_config
-from src.detection.debug import debug_detection
-from src.detection.merge.debug import debug_merge
+from src.debug import (
+    debug_detection,
+    debug_inpaint,
+    debug_insertion,
+    debug_merge,
+    debug_translation,
+)
 from src.detection.merge.merge import merge_detections
 from src.detection.ocr import TextDetector
-from src.inpainting.debug import debug_inpaint
 from src.inpainting.lama import inpaint_page
-from src.insertion.debug import debug_insertion
 from src.insertion.render import insert_text
 from src.languages import SUPPORTED_LANGUAGES
-from src.translation.debug import debug_translation
 from src.translation.llm import translate_page
 
 
