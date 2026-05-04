@@ -21,7 +21,7 @@ def _greedy_wrap(
     y_start: int,
     font_height: int,
     line_step: int,
-    padding_h: int,
+    cfg,
     mask_bottom: int,
 ) -> list[tuple[str, int, int, int]] | None:
     y = y_start
@@ -33,8 +33,10 @@ def _greedy_wrap(
         if span is None:
             return None
 
-        left = span[0] + padding_h
-        right = span[1] - padding_h
+        span_width = span[1] - span[0]
+        margin_h = int(span_width * cfg.text_padding_h / 200)
+        left = span[0] + margin_h
+        right = span[1] - margin_h
         available = right - left
 
         if available <= 0:
@@ -76,8 +78,10 @@ def fit_text(
     if len(ys) == 0:
         return 1, []
 
-    mask_top = int(ys[0]) + cfg.text_padding_v
-    mask_bottom = int(ys[-1]) - cfg.text_padding_v
+    hull_height = ys[-1] - ys[0]
+    margin_v = int(hull_height * cfg.text_padding_v / 200)
+    mask_top = int(ys[0]) + margin_v
+    mask_bottom = int(ys[-1]) - margin_v
     max_vertical = mask_bottom - mask_top
 
     if max_vertical <= 0:
@@ -112,7 +116,7 @@ def fit_text(
             mask_top,
             font_height,
             line_step,
-            cfg.text_padding_h,
+            cfg,
             mask_bottom,
         )
 
@@ -148,8 +152,10 @@ def fit_text(
         span = _horizontal_span(mask, y, font_height)
         if span is None:
             break
-        left = span[0] + cfg.text_padding_h
-        right = span[1] - cfg.text_padding_h
+        span_width = span[1] - span[0]
+        margin_h = int(span_width * cfg.text_padding_h / 200)
+        left = span[0] + margin_h
+        right = span[1] - margin_h
         word_w = font.getlength(word)
         x = left + (right - left - word_w) / 2
         out.append((word, int(x), int(y)))
