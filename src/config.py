@@ -24,6 +24,7 @@ class Config:
     text_padding_h: float = 0.05
     text_padding_v: float = 0.05
     line_spacing: float = 1.5
+    text_angle_threshold: float = 0.5
 
 
 _config: Config | None = None
