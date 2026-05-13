@@ -22,5 +22,5 @@ uv sync
 ## Uso
 
 ```bash
-uv run main.py comics/ --source-lang "pt" --target-lang "ENGLISH"
+uv run main.py comics/ --source-lang "pt" --target-lang "en"
 ```
