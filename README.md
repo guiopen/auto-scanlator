@@ -22,5 +22,9 @@ uv sync
 ## Uso
 
 ```bash
-uv run main.py comics/ --source-lang "pt" --target-lang "en"
+# Traduzir um diretório de quadrinhos
+uv run main.py comic/ --source-lang pt --target-lang en
+
+# Traduzir uma página específica
+uv run main.py comic/page1.png --source-lang pt --target-lang en
 ```
