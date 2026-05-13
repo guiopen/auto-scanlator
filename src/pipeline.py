@@ -51,9 +51,10 @@ def process_pages(image_paths: list[str], source_lang: str, target_lang: str):
     detector = TextDetector(SUPPORTED_LANGUAGES[source_lang].ocr_code)
 
     llm_source_lang = SUPPORTED_LANGUAGES[source_lang].label
+    llm_target_lang = SUPPORTED_LANGUAGES[target_lang].label
 
     for image_path in image_paths:
         img = cv2.imread(image_path)
         if img is None:
             continue
-        _run_pipeline(detector, img, llm_source_lang, target_lang)
+        _run_pipeline(detector, img, llm_source_lang, llm_target_lang)

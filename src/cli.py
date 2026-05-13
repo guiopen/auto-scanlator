@@ -29,5 +29,13 @@ def cli():
             f"Supported codes: {supported}"
         )
 
+    target_lang = args.target_lang.lower()
+    if target_lang not in SUPPORTED_LANGUAGES:
+        supported = ", ".join(sorted(SUPPORTED_LANGUAGES.keys()))
+        parser.error(
+            f"Unsupported target language: '{args.target_lang}'. "
+            f"Supported codes: {supported}"
+        )
+
     image_paths = resolve_images(Path(args.image_path))
-    process_pages([str(p) for p in image_paths], source_lang, args.target_lang)
+    process_pages([str(p) for p in image_paths], source_lang, target_lang)
