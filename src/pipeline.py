@@ -48,9 +48,9 @@ def _run_pipeline(
 
 def process_pages(image_paths: list[str], source_lang: str, target_lang: str):
     load_config()
-    detector = TextDetector(source_lang)
+    detector = TextDetector(SUPPORTED_LANGUAGES[source_lang].ocr_code)
 
-    llm_source_lang = SUPPORTED_LANGUAGES[source_lang]
+    llm_source_lang = SUPPORTED_LANGUAGES[source_lang].label
 
     for image_path in image_paths:
         img = cv2.imread(image_path)
