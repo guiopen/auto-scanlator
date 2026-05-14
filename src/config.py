@@ -19,11 +19,6 @@ class Config:
     llm_api_key: str = ""
     llm_model: str = ""
     llm_extra_parameters: dict = field(default_factory=dict)
-    font_min_size: int = 1
-    font_max_size: int = 999
-    text_padding_h: float = 0.05
-    text_padding_v: float = 0.05
-    line_spacing: float = 1.5
     text_angle_threshold: float = 0.5
 
 

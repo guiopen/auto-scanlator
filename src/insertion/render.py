@@ -5,35 +5,15 @@ from PIL import Image, ImageDraw, ImageFont
 from src.insertion.fit import FONT_PATH, fit_text
 
 
-def _render_rotated_block(
-    block: dict,
-    img_w: int,
-    img_h: int,
-) -> Image.Image | None:
+def _render_rotated_block(block: dict) -> Image.Image | None:
     text = block["text"]
-    mask = block["mask"]
     angle = block["angle"]
-    center = block["rect_center"]
     rw, rh = block["rect_size"]
 
     if rw <= 0 or rh <= 0:
         return None
 
-    rot_mat = cv2.getRotationMatrix2D(center, angle, 1.0)
-    rotated_mask = cv2.warpAffine(
-        mask, rot_mat, (img_w, img_h), flags=cv2.INTER_NEAREST
-    )
-
-    cx, cy = int(round(center[0])), int(round(center[1]))
-    x1 = max(0, cx - rw // 2)
-    y1 = max(0, cy - rh // 2)
-    x2 = min(rotated_mask.shape[1], x1 + rw)
-    y2 = min(rotated_mask.shape[0], y1 + rh)
-    if x2 <= x1 or y2 <= y1:
-        return None
-    aligned_mask = rotated_mask[y1:y2, x1:x2]
-
-    size, lines = fit_text(text, aligned_mask)
+    size, lines = fit_text(text, rw, rh)
     if not lines:
         return None
 
@@ -60,7 +40,6 @@ def insert_text(
 ) -> np.ndarray:
     rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     pil_img = Image.fromarray(rgb)
-    img_w, img_h = pil_img.size
     draw = ImageDraw.Draw(pil_img)
 
     for block in merged_blocks:
@@ -69,14 +48,22 @@ def insert_text(
             continue
 
         angle = block.get("angle", 0.0)
+        center = block["rect_center"]
+        rw, rh = block["rect_size"]
+
+        if rw <= 0 or rh <= 0:
+            continue
 
         if angle == 0.0:
-            mask = block["mask"]
-            size, lines = fit_text(text, mask)
+            cx, cy = int(round(center[0])), int(round(center[1]))
+            x1 = cx - rw // 2
+            y1 = cy - rh // 2
+
+            size, lines = fit_text(text, rw, rh)
             font = ImageFont.truetype(str(FONT_PATH), size)
             for line_text, x, y in lines:
                 draw.text(
-                    (x, y),
+                    (x1 + x, y1 + y),
                     line_text,
                     font=font,
                     fill="black",
@@ -84,10 +71,9 @@ def insert_text(
                     stroke_fill="white",
                 )
         else:
-            rotated = _render_rotated_block(block, img_w, img_h)
+            rotated = _render_rotated_block(block)
             if rotated is None:
                 continue
-            center = block["rect_center"]
             paste_x = int(round(center[0] - rotated.width / 2))
             paste_y = int(round(center[1] - rotated.height / 2))
             pil_img.paste(rotated, (paste_x, paste_y), rotated)

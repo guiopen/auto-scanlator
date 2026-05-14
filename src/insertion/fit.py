@@ -1,165 +1,76 @@
 from pathlib import Path
 
-import numpy as np
 from PIL import ImageFont
-
-from src.config import get_config
 
 FONT_PATH = Path(__file__).parent.parent.parent / "fonts" / "font.ttf"
 
 
-def _horizontal_span(mask: np.ndarray, y: int, height: int) -> tuple[int, int] | None:
-    row = mask[y : y + height, :]
-    cols = np.where(row.any(axis=0))[0]
-    if len(cols) == 0:
-        return None
-    return int(cols[0]), int(cols[-1])
-
-
-def _greedy_wrap(
-    words: list[str],
-    font: ImageFont.FreeTypeFont,
-    mask: np.ndarray,
-    y_start: int,
-    font_height: int,
-    line_step: int,
-    mask_bottom: int,
-) -> list[tuple[str, int, int, int]] | None:
-    config = get_config()
-    y = y_start
+def _word_wrap(text: str, font: ImageFont.FreeTypeFont, max_width: int) -> list[str]:
+    words = text.split()
+    if not words:
+        return []
     lines = []
-    i = 0
-
-    while i < len(words):
-        span = _horizontal_span(mask, y, font_height)
-        if span is None:
-            return None
-
-        span_width = span[1] - span[0]
-        margin_h = int(span_width * config.text_padding_h / 2)
-        left = span[0] + margin_h
-        right = span[1] - margin_h
-        available = right - left
-
-        if available <= 0:
-            return None
-
-        test_line = words[i]
-        test_width = font.getlength(test_line)
-        if test_width > available:
-            return None
-
-        j = i + 1
-        while j < len(words):
-            candidate = test_line + " " + words[j]
-            candidate_width = font.getlength(candidate)
-            if candidate_width <= available:
-                test_line = candidate
-                test_width = candidate_width
-                j += 1
-            else:
-                break
-
-        lines.append((test_line, y, left, right, test_width))
-        y += line_step
-
-        if y + font_height > mask_bottom and j < len(words):
-            return None
-
-        i = j
-
+    current = []
+    for word in words:
+        test = " ".join(current + [word])
+        if font.getlength(test) <= max_width:
+            current.append(word)
+        else:
+            if current:
+                lines.append(" ".join(current))
+            current = [word]
+    if current:
+        lines.append(" ".join(current))
     return lines
+
+
+def _layout(
+    text: str, size: int, max_width: int,
+) -> tuple[ImageFont.FreeTypeFont, int, list[str], float, int] | None:
+    font = ImageFont.truetype(str(FONT_PATH), size)
+    bbox = font.getbbox("Agy")
+    font_height = int(bbox[3] - bbox[1])
+    if font_height <= 0:
+        return None
+    lines = _word_wrap(text, font, max_width)
+    max_line_width = max((font.getlength(ln) for ln in lines), default=0.0)
+    total_height = int(font_height * len(lines))
+    return font, font_height, lines, max_line_width, total_height
 
 
 def fit_text(
     text: str,
-    mask: np.ndarray,
+    max_width: int,
+    max_height: int,
 ) -> tuple[int, list[tuple[str, int, int]]]:
-    config = get_config()
-    ys = np.where(mask.any(axis=1))[0]
-    if len(ys) == 0:
+    if max_width <= 0 or max_height <= 0 or not text.strip():
         return 1, []
 
-    hull_height = ys[-1] - ys[0]
-    margin_v = int(hull_height * config.text_padding_v / 2)
-    mask_top = int(ys[0]) + margin_v
-    mask_bottom = int(ys[-1]) - margin_v
-    max_vertical = mask_bottom - mask_top
+    font_size = max_height
 
-    if max_vertical <= 0:
+    result = _layout(text, font_size, max_width)
+    if result is None:
         return 1, []
+    font, font_height, lines, max_lw, total_h = result
 
-    words = text.split()
-    if not words:
-        return 1, []
+    scale_w = max_width / max_lw if max_lw > max_width else 1.0
+    scale_h = max_height / total_h if total_h > max_height else 1.0
+    scale = min(scale_w, scale_h)
 
-    max_size = min(config.font_max_size, max_vertical)
-    max_size = max(max_size, config.font_min_size)
+    if scale < 1.0:
+        font_size = max(1, int(font_size * scale))
+        result = _layout(text, font_size, max_width)
+        if result is None:
+            return 1, []
+        font, font_height, lines, max_lw, total_h = result
 
-    best_size = config.font_min_size
-    best_lines = []
+    offset_y = (max_height - total_h) // 2
+    result = []
+    y = offset_y
+    for line_text in lines:
+        line_w = font.getlength(line_text)
+        x = (max_width - line_w) // 2
+        result.append((line_text, int(x), int(y)))
+        y += font_height
 
-    lo, hi = config.font_min_size, max_size
-    while lo <= hi:
-        mid = (lo + hi) // 2
-        font = ImageFont.truetype(str(FONT_PATH), mid)
-        bbox = font.getbbox("Agy")
-        font_height = bbox[3] - bbox[1]
-        line_step = int(font_height * config.line_spacing)
-
-        if font_height <= 0:
-            hi = mid - 1
-            continue
-
-        lines = _greedy_wrap(
-            words,
-            font,
-            mask,
-            mask_top,
-            font_height,
-            line_step,
-            mask_bottom,
-        )
-
-        if lines is not None:
-            best_size = mid
-            best_lines = lines
-            lo = mid + 1
-        else:
-            hi = mid - 1
-
-    font = ImageFont.truetype(str(FONT_PATH), best_size)
-    bbox = font.getbbox("Agy")
-    font_height = bbox[3] - bbox[1]
-    line_step = int(font_height * config.line_spacing)
-
-    if best_lines:
-        total_height = font_height + (len(best_lines) - 1) * line_step
-        available = mask_bottom - mask_top
-        offset = max(0, (available - total_height) // 2)
-
-        out = []
-        for line_text, y, left, right, width in best_lines:
-            line_w = font.getlength(line_text)
-            x = left + (right - left - line_w) / 2
-            out.append((line_text, int(x), int(y + offset)))
-        return best_size, out
-
-    out = []
-    y = mask_top
-    for word in words:
-        if y + font_height > mask_bottom:
-            break
-        span = _horizontal_span(mask, y, font_height)
-        if span is None:
-            break
-        span_width = span[1] - span[0]
-        margin_h = int(span_width * config.text_padding_h / 2)
-        left = span[0] + margin_h
-        right = span[1] - margin_h
-        word_w = font.getlength(word)
-        x = left + (right - left - word_w) / 2
-        out.append((word, int(x), int(y)))
-        y += line_step
-
-    return best_size, out
+    return font_size, result
