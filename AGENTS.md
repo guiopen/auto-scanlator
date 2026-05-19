@@ -19,7 +19,7 @@
 - All config keys have defaults in `src/config.py:Config` dataclass; use those as reference
 
 ## Important quirks
-- `torch` and `simple_lama_inpainting` are lazy-imported inside `inpainting/lama.py:inpaint()`, not at module level
+- `torch` and `simple_lama_inpainting` are lazy-imported inside `inpainting/lama.py:PageInpainter.__init__()`, not at module level
 - Debug flags (`debug_*` in config) open blocking OpenCV windows — the program waits for a keypress per page
 - Input images are resolved via `PIL.Image.open()` — any format Pillow can open is accepted
 - `insertion/render.py:_render_rotated_block` uses `getRotationMatrix2D(center, -angle, …)` (straighten) and `canvas.rotate(angle, …)` (restore tilt). Do not swap signs — OpenCV angles are negative for clockwise rotation.

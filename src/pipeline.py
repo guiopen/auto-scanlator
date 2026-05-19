@@ -11,7 +11,7 @@ from src.debug import (
 )
 from src.detection.merge.merge import merge_detections
 from src.detection.ocr import TextDetector
-from src.inpainting.lama import inpaint_page
+from src.inpainting.lama import PageInpainter
 from src.insertion.render import insert_text
 from src.languages import SUPPORTED_LANGUAGES
 from src.translation.llm import translate_page
@@ -19,6 +19,7 @@ from src.translation.llm import translate_page
 
 def _run_pipeline(
     detector: TextDetector,
+    inpainter: PageInpainter,
     img: np.ndarray,
     llm_source_lang: str,
     target_lang: str,
@@ -36,7 +37,7 @@ def _run_pipeline(
     if config.debug_merge:
         debug_merge(img, inpaint_mask)
 
-    cleaned_page = inpaint_page(img, inpaint_mask)
+    cleaned_page = inpainter.inpaint(img, inpaint_mask)
     if config.debug_inpaint and cleaned_page is not None:
         debug_inpaint(cleaned_page)
 
@@ -49,6 +50,7 @@ def _run_pipeline(
 def process_pages(image_paths: list[str], source_lang: str, target_lang: str):
     load_config()
     detector = TextDetector(SUPPORTED_LANGUAGES[source_lang].ocr_code)
+    inpainter = PageInpainter()
 
     llm_source_lang = SUPPORTED_LANGUAGES[source_lang].label
     llm_target_lang = SUPPORTED_LANGUAGES[target_lang].label
@@ -57,4 +59,4 @@ def process_pages(image_paths: list[str], source_lang: str, target_lang: str):
         img = cv2.imread(image_path)
         if img is None:
             continue
-        _run_pipeline(detector, img, llm_source_lang, llm_target_lang)
+        _run_pipeline(detector, inpainter, img, llm_source_lang, llm_target_lang)
