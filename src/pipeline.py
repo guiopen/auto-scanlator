@@ -4,6 +4,7 @@ import numpy as np
 from src.config import get_config, load_config
 from src.debug import (
     debug_detection,
+    debug_grouping,
     debug_inpaint,
     debug_insertion,
     debug_merge,
@@ -28,6 +29,12 @@ def _run_pipeline(
     detections = detector.detect(img)
     if config.debug_detection:
         debug_detection(img, detections)
+
+    if config.debug_grouping:
+        from src.detection.group_lines import group_detections
+
+        grouped = group_detections(img, detections)
+        debug_grouping(img, detections, grouped)
 
     blocks = translate_page(img, detections, llm_source_lang, target_lang)
     if config.debug_translation:
