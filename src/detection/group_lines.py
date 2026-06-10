@@ -42,7 +42,9 @@ def group_detections(
 
     expanded = []
     for center, (w, h), angle in rects:
-        expanded.append((center, (w, h * 2.0), angle))
+        w_exp = w + h * config.group_expand_horizontal
+        h_exp = h * config.group_expand_vertical
+        expanded.append((center, (w_exp, h_exp), angle))
 
     parent = list(range(n))
     angle_threshold = config.text_angle_threshold
@@ -54,17 +56,23 @@ def group_detections(
             ret = cv2.rotatedRectangleIntersection(expanded[i], expanded[j])
             if ret[0] == cv2.INTERSECT_NONE:
                 continue
-            (cx_i, cy_i), (w_i, _), angle_i = rects[i]
-            (cx_j, cy_j), (w_j, _), _ = rects[j]
+            (cx_i, cy_i), (w_i, h_i), angle_i = rects[i]
+            (cx_j, cy_j), (w_j, h_j), _ = rects[j]
+            top_i, bot_i = cy_i - h_i / 2, cy_i + h_i / 2
+            top_j, bot_j = cy_j - h_j / 2, cy_j + h_j / 2
+            y_overlap = max(0.0, min(bot_i, bot_j) - max(top_i, top_j))
+            min_h = min(h_i, h_j)
+            if min_h > 0 and ((y_overlap / min_h) >= config.group_vertical_overlap_ratio):
+                _union(parent, i, j)
+                continue
             angle_rad = np.deg2rad(angle_i)
             proj_i = cx_i * np.cos(angle_rad) + cy_i * np.sin(angle_rad)
             proj_j = cx_j * np.cos(angle_rad) + cy_j * np.sin(angle_rad)
             a_i, b_i = proj_i - w_i / 2, proj_i + w_i / 2
             a_j, b_j = proj_j - w_j / 2, proj_j + w_j / 2
             overlap = max(0.0, min(b_i, b_j) - max(a_i, a_j))
-            if overlap < config.merge_overlap_ratio * min(w_i, w_j):
-                continue
-            _union(parent, i, j)
+            if overlap >= (config.group_horizontal_overlap_ratio * min(w_i, w_j)):
+                _union(parent, i, j)
 
     groups: dict[int, list[int]] = {}
     for i in range(n):

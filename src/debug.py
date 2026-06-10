@@ -48,7 +48,7 @@ def debug_grouping(
     overlay = img.copy()
     n = len(blocks)
     for i, block in enumerate(blocks):
-        hue = int(180 * i / max(n, 1))
+        hue = int((180 * i) / max(n, 1))
         color = cv2.cvtColor(
             np.array([[[hue, 255, 255]]], dtype=np.uint8), cv2.COLOR_HSV2BGR
         )[0, 0].tolist()
