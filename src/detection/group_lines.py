@@ -82,6 +82,15 @@ def group_detections(
     blocks = []
     for indices in groups.values():
         indices.sort()
-        blocks.append({"lines": indices, "translated_text": ""})
+        texts = [detections[i][0] for i in indices]
+        poly_points = [
+            [[int(pt[0]), int(pt[1])] for pt in poly]
+            for i in indices
+            for _, poly in [detections[i]]
+        ]
+        blocks.append({
+            "original_text": " ".join(texts),
+            "poly_points": poly_points,
+        })
 
     return blocks

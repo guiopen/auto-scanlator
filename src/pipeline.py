@@ -10,6 +10,7 @@ from src.debug import (
     debug_merge,
     debug_translation,
 )
+from src.detection.group_lines import group_detections
 from src.detection.merge.merge import merge_detections
 from src.detection.ocr import TextDetector
 from src.inpainting.lama import PageInpainter
@@ -30,17 +31,15 @@ def _run_pipeline(
     if config.debug_detection:
         debug_detection(img, detections)
 
+    grouped_blocks = group_detections(img, detections)
     if config.debug_grouping:
-        from src.detection.group_lines import group_detections
+        debug_grouping(img, grouped_blocks)
 
-        grouped = group_detections(img, detections)
-        debug_grouping(img, detections, grouped)
-
-    blocks = translate_page(img, detections, llm_source_lang, target_lang)
+    blocks = translate_page(img, grouped_blocks, llm_source_lang, target_lang)
     if config.debug_translation:
         debug_translation(blocks)
 
-    inpaint_mask, merged_blocks = merge_detections(img, detections, blocks)
+    inpaint_mask, merged_blocks = merge_detections(img, blocks)
     if config.debug_merge:
         debug_merge(img, inpaint_mask)
 
