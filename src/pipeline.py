@@ -4,11 +4,13 @@ import numpy as np
 from src.config import get_config, load_config
 from src.debug import (
     debug_detection,
+    debug_grouping,
     debug_inpaint,
     debug_insertion,
     debug_merge,
     debug_translation,
 )
+from src.detection.group_lines import group_detections
 from src.detection.merge.merge import merge_detections
 from src.detection.ocr import TextDetector
 from src.inpainting.lama import PageInpainter
@@ -29,11 +31,15 @@ def _run_pipeline(
     if config.debug_detection:
         debug_detection(img, detections)
 
-    blocks = translate_page(img, detections, llm_source_lang, target_lang)
+    grouped_blocks = group_detections(img, detections)
+    if config.debug_grouping:
+        debug_grouping(img, grouped_blocks)
+
+    blocks = translate_page(img, grouped_blocks, llm_source_lang, target_lang)
     if config.debug_translation:
         debug_translation(blocks)
 
-    inpaint_mask, merged_blocks = merge_detections(img, detections, blocks)
+    inpaint_mask, merged_blocks = merge_detections(img, blocks)
     if config.debug_merge:
         debug_merge(img, inpaint_mask)
 

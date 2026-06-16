@@ -73,20 +73,35 @@ def _parse_llm_response(content: str) -> list[dict]:
 
 def translate_page(
     img: np.ndarray,
-    lines: list[tuple[str, tuple[tuple[int, int], ...]]],
+    grouped_blocks: list[dict],
     source_lang: str,
     target_lang: str,
-):
-    prompt_lines = "\n".join(f"Line {i}: {text}" for i, (text, _) in enumerate(lines))
+) -> list[dict]:
+    prompt_lines = "\n".join(
+        f"Block {i}: {block['original_text']}"
+        for i, block in enumerate(grouped_blocks)
+    )
     full_prompt = (
         _SYSTEM_PROMPT_TEMPLATE.substitute(
             source_lang=source_lang, target_lang=target_lang
         )
-        + "\n\nLines detected:\n"
+        + "\n\nBlocks detected:\n"
         + prompt_lines
     )
 
     b64 = _encode_image(img)
     payload = _build_api_payload(b64, full_prompt)
     content = _call_llm_api(payload)
-    return _parse_llm_response(content)
+
+    llm_response = _parse_llm_response(content)
+    indexed = {
+        b["block"]: b.get("translated_text", "")
+        for b in llm_response
+        if isinstance(b, dict) and "block" in b
+    }
+
+    result = []
+    for i, block in enumerate(grouped_blocks):
+        if i in indexed:
+            result.append({**block, "translated_text": indexed[i]})
+    return result

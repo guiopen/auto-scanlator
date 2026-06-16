@@ -11,6 +11,7 @@ class Config:
     box_thresh: float = 0.6
     rec_thresh: float = 0.3
     debug_detection: bool = False
+    debug_grouping: bool = False
     debug_translation: bool = False
     debug_merge: bool = False
     debug_inpaint: bool = False
@@ -24,7 +25,11 @@ class Config:
     text_padding_h: float = 0.05
     text_padding_v: float = 0.05
     line_spacing: float = 1.5
-    text_angle_threshold: float = 0.5
+    text_angle_threshold: float = 3.0
+    group_expand_vertical: float = 2.0
+    group_expand_horizontal: float = 0.5
+    group_vertical_overlap_ratio: float = 0.5
+    group_horizontal_overlap_ratio: float = 0.5
 
 
 _config: Config | None = None

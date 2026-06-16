@@ -4,25 +4,14 @@ import numpy as np
 from src.config import get_config
 
 
-def get_block_points(
-    detections: list[tuple[str, tuple[tuple[int, int], ...]]],
-    block: dict,
-) -> np.ndarray | None:
-    line_indices = block.get("lines", [])
-    points = []
-    for idx in line_indices:
-        if 0 <= idx < len(detections):
-            _, poly = detections[idx]
-            for pt in poly:
-                points.append([pt[0], pt[1]])
-    return np.array(points, dtype=np.int32) if points else None
+def get_block_points(block: dict) -> np.ndarray | None:
+    polygons = block.get("poly_points", [])
+    pts = [pt for poly in polygons for pt in poly]
+    return np.array(pts, dtype=np.int32) if pts else None
 
 
-def block_shape_hull(
-    detections: list[tuple[str, tuple[tuple[int, int], ...]]],
-    block: dict,
-) -> np.ndarray | None:
-    pts = get_block_points(detections, block)
+def block_shape_hull(block: dict) -> np.ndarray | None:
+    pts = get_block_points(block)
     if pts is None or len(pts) < 3:
         return None
     return cv2.convexHull(pts)
@@ -55,19 +44,18 @@ def _compute_rotation(
 
 def merge_detections(
     img: np.ndarray,
-    detections: list[tuple[str, tuple[tuple[int, int], ...]]],
     blocks: list[dict],
 ) -> tuple[np.ndarray, list[dict]]:
     config = get_config()
     inpaint_mask = np.zeros(img.shape[:2], dtype=np.uint8)
     merged_blocks = []
     for block in blocks:
-        hull = block_shape_hull(detections, block)
+        hull = block_shape_hull(block)
         if hull is not None:
             block_mask = hull_to_mask(img.shape, hull)
             inpaint_mask |= block_mask
 
-            pts = get_block_points(detections, block)
+            pts = get_block_points(block)
             angle, center, rect_size = _compute_rotation(
                 pts, config.text_angle_threshold
             )
