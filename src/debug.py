@@ -59,11 +59,21 @@ def debug_grouping(
     _show_debug("Grouping", result, height)
 
 
-def debug_merge(img: np.ndarray, mask: np.ndarray, height: int = 720):
+def debug_merge(
+    img: np.ndarray,
+    merged_blocks: list[dict],
+    height: int = 720,
+):
     overlay = img.copy()
-    mask_colored = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
-    mask_colored[:] = (0, 0, 255)
-    overlay = np.where(mask[..., None] > 0, mask_colored, overlay)
+    n = len(merged_blocks)
+    for i, block in enumerate(merged_blocks):
+        hue = int((180 * i) / max(n, 1))
+        color = cv2.cvtColor(
+            np.array([[[hue, 255, 255]]], dtype=np.uint8), cv2.COLOR_HSV2BGR
+        )[0, 0].tolist()
+        mask = block.get("mask")
+        if mask is not None:
+            overlay[mask > 0] = color
     result = cv2.addWeighted(overlay, 0.4, img, 0.6, 0)
     _show_debug("Merge", result, height)
 

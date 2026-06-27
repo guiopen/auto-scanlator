@@ -11,7 +11,7 @@ from src.debug import (
     debug_translation,
 )
 from src.detection.group_lines import group_detections
-from src.detection.merge.merge import merge_detections
+from src.insertion.merge import merge_detections
 from src.detection.ocr import TextDetector
 from src.inpainting.lama import PageInpainter
 from src.insertion.render import insert_text
@@ -39,13 +39,13 @@ def _run_pipeline(
     if config.debug_translation:
         debug_translation(blocks)
 
-    inpaint_mask, merged_blocks = merge_detections(img, blocks)
-    if config.debug_merge:
-        debug_merge(img, inpaint_mask)
-
-    cleaned_page = inpainter.inpaint(img, inpaint_mask)
+    cleaned_page = inpainter.inpaint(img, blocks)
     if config.debug_inpaint and cleaned_page is not None:
         debug_inpaint(cleaned_page)
+
+    merged_blocks = merge_detections(img, blocks)
+    if config.debug_merge:
+        debug_merge(img, merged_blocks)
 
     if cleaned_page is not None:
         result = insert_text(cleaned_page, merged_blocks)

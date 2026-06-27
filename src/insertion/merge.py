@@ -45,28 +45,28 @@ def _compute_rotation(
 def merge_detections(
     img: np.ndarray,
     blocks: list[dict],
-) -> tuple[np.ndarray, list[dict]]:
+) -> list[dict]:
     config = get_config()
-    inpaint_mask = np.zeros(img.shape[:2], dtype=np.uint8)
     merged_blocks = []
     for block in blocks:
         hull = block_shape_hull(block)
-        if hull is not None:
-            block_mask = hull_to_mask(img.shape, hull)
-            inpaint_mask |= block_mask
+        if hull is None:
+            continue
 
-            pts = get_block_points(block)
-            angle, center, rect_size = _compute_rotation(
-                pts, config.text_angle_threshold
-            )
+        block_mask = hull_to_mask(img.shape, hull)
 
-            merged_blocks.append(
-                {
-                    "mask": block_mask,
-                    "text": block["translated_text"],
-                    "angle": angle,
-                    "rect_center": center,
-                    "rect_size": rect_size,
-                }
-            )
-    return inpaint_mask, merged_blocks
+        pts = get_block_points(block)
+        angle, center, rect_size = _compute_rotation(
+            pts, config.text_angle_threshold
+        )
+
+        merged_blocks.append(
+            {
+                "mask": block_mask,
+                "text": block["translated_text"],
+                "angle": angle,
+                "rect_center": center,
+                "rect_size": rect_size,
+            }
+        )
+    return merged_blocks

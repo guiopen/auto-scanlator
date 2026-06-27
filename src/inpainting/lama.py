@@ -9,7 +9,13 @@ class PageInpainter:
 
         self._lama = SimpleLama(device=torch.device(device))
 
-    def inpaint(self, img: np.ndarray, mask: np.ndarray) -> np.ndarray | None:
+    def inpaint(self, img: np.ndarray, blocks: list[dict]) -> np.ndarray | None:
+        mask = np.zeros(img.shape[:2], dtype=np.uint8)
+        for block in blocks:
+            for poly in block.get("poly_points", []):
+                pts = np.array(poly, dtype=np.int32)
+                cv2.fillPoly(mask, [pts], 255)
+
         if mask.sum() == 0:
             return None
 
