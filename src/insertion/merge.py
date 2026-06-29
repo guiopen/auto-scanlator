@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 
 from src.config import get_config
+from src.utils import normalize_rect
 
 
 def get_block_points(block: dict) -> np.ndarray | None:
@@ -17,24 +18,13 @@ def block_shape_hull(block: dict) -> np.ndarray | None:
     return cv2.convexHull(pts)
 
 
-def hull_to_mask(img_shape: tuple[int, int, int], hull: np.ndarray) -> np.ndarray:
-    mask = np.zeros(img_shape[:2], dtype=np.uint8)
-    cv2.fillPoly(mask, [hull], 255)
-    return mask
-
-
 def _compute_rotation(
     pts: np.ndarray, threshold: float
 ) -> tuple[float, tuple[float, float], tuple[int, int]]:
     if len(pts) < 3:
         return 0.0, (0.0, 0.0), (0, 0)
 
-    rect = cv2.minAreaRect(pts)
-    center, (w, h), angle = rect
-
-    if angle < -45:
-        angle += 90
-        w, h = h, w
+    center, (w, h), angle = normalize_rect(pts)
 
     if abs(angle) <= threshold:
         angle = 0.0
@@ -53,12 +43,11 @@ def merge_detections(
         if hull is None:
             continue
 
-        block_mask = hull_to_mask(img.shape, hull)
+        block_mask = np.zeros(img.shape[:2], dtype=np.uint8)
+        cv2.fillPoly(block_mask, [hull], 255)
 
         pts = get_block_points(block)
-        angle, center, rect_size = _compute_rotation(
-            pts, config.text_angle_threshold
-        )
+        angle, center, rect_size = _compute_rotation(pts, config.text_angle_threshold)
 
         merged_blocks.append(
             {

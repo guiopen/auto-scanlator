@@ -2,15 +2,7 @@ import cv2
 import numpy as np
 
 from src.config import get_config
-
-
-def _normalize_rect(pts: np.ndarray) -> tuple[tuple[float, float], tuple[float, float], float]:
-    rect = cv2.minAreaRect(pts)
-    center, (w, h), angle = rect
-    if angle < -45:
-        angle += 90
-        w, h = h, w
-    return center, (w, h), angle
+from src.utils import normalize_rect
 
 
 def _find(parent: list[int], x: int) -> int:
@@ -38,7 +30,7 @@ def group_detections(
     rects = []
     for _, poly in detections:
         pts = np.array(poly, dtype=np.float32)
-        rects.append(_normalize_rect(pts))
+        rects.append(normalize_rect(pts))
 
     expanded = []
     for center, (w, h), angle in rects:
@@ -62,7 +54,9 @@ def group_detections(
             top_j, bot_j = cy_j - h_j / 2, cy_j + h_j / 2
             y_overlap = max(0.0, min(bot_i, bot_j) - max(top_i, top_j))
             min_h = min(h_i, h_j)
-            if min_h > 0 and ((y_overlap / min_h) >= config.group_vertical_overlap_ratio):
+            if min_h > 0 and (
+                (y_overlap / min_h) >= config.group_vertical_overlap_ratio
+            ):
                 _union(parent, i, j)
                 continue
             angle_rad = np.deg2rad(angle_i)
@@ -88,9 +82,11 @@ def group_detections(
             for i in indices
             for _, poly in [detections[i]]
         ]
-        blocks.append({
-            "original_text": " ".join(texts),
-            "poly_points": poly_points,
-        })
+        blocks.append(
+            {
+                "original_text": " ".join(texts),
+                "poly_points": poly_points,
+            }
+        )
 
     return blocks
