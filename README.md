@@ -4,6 +4,7 @@ Ferramenta de tradução automática de quadrinhos.
 
 > **Nota:** O programa não suporta idiomas com escrita vertical (ex: japonês).  
 > Apenas idiomas com orientação horizontal são compatíveis.
+> O programa é um TCC em desenvolvimento, ainda esta na fase de protótipo
 
 ## Setup
 
