@@ -5,7 +5,7 @@ import numpy as np
 class PageInpainter:
     def __init__(self, device: str = "cpu"):
         import torch
-        from simple_lama_inpainting import SimpleLama
+        from simple_lama_inpainting import SimpleLama  # type: ignore[import-untyped]
 
         self._lama = SimpleLama(device=torch.device(device))
 
@@ -20,7 +20,7 @@ class PageInpainter:
             return None
 
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-        mask = cv2.dilate(mask, kernel, iterations=1)
+        mask = np.asarray(cv2.dilate(mask, kernel, iterations=1), dtype=np.uint8)
 
         rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         inpainted_pil = self._lama(rgb, mask)

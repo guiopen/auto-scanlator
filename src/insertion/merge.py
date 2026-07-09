@@ -47,6 +47,7 @@ def merge_detections(
         cv2.fillPoly(block_mask, [hull], 255)
 
         pts = get_block_points(block)
+        assert pts is not None
         angle, center, rect_size = _compute_rotation(pts, config.text_angle_threshold)
 
         merged_blocks.append(

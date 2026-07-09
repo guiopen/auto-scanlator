@@ -24,7 +24,7 @@ def _greedy_wrap(
     font_height: int,
     line_step: int,
     mask_bottom: int,
-) -> list[tuple[str, int, int, int]] | None:
+) -> list[tuple[str, int, int, int, float]] | None:
     config = get_config()
     y = y_start
     lines = []
@@ -104,7 +104,7 @@ def fit_text(
         mid = (lo + hi) // 2
         font = ImageFont.truetype(str(FONT_PATH), mid)
         bbox = font.getbbox("Agy")
-        font_height = bbox[3] - bbox[1]
+        font_height = int(bbox[3] - bbox[1])
         line_step = int(font_height * config.line_spacing)
 
         if font_height <= 0:
@@ -130,7 +130,7 @@ def fit_text(
 
     font = ImageFont.truetype(str(FONT_PATH), best_size)
     bbox = font.getbbox("Agy")
-    font_height = bbox[3] - bbox[1]
+    font_height = int(bbox[3] - bbox[1])
     line_step = int(font_height * config.line_spacing)
 
     if best_lines:

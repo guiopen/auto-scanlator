@@ -10,4 +10,4 @@ def normalize_rect(
     if angle < -45:
         angle += 90
         w, h = h, w
-    return center, (w, h), angle
+    return (center[0], center[1]), (w, h), angle

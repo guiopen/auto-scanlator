@@ -1,5 +1,5 @@
 import numpy as np
-from paddleocr import PaddleOCR
+from paddleocr import PaddleOCR  # type: ignore[import-untyped]
 
 from src.config import get_config
 
