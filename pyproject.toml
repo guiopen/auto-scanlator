@@ -7,7 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "numpy>=2.3.5",
     "opencv-python>=4.13.0.92",
-    "paddleocr>=3.5.0",
+    "paddleocr>=3.7.0",
     "paddlepaddle==3.2.2",
     "pillow>=12.2.0",
     "simple-lama-inpainting>=0.1.0",
