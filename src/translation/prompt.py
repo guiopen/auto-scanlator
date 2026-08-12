@@ -41,5 +41,7 @@ _SYSTEM_PROMPT_TEMPLATE = Template(
     "Rules:\n"
     "- translated_text should be natural and fluent, not literal word-by-word\n"
     "- If the original text spans multiple lines in a bubble, translate it as continuous prose\n"
-    "- Never include sound effects, background signs, or environmental text"
+    "- Never include sound effects, background signs, or environmental text\n"
+    "- Never translate proper nouns: character names, place names, brands, or work titles must be kept exactly as written\n"
+    "- Preserve stylistic text devices in the translation: censored words must stay censored (never write out the real word), dashes or underscores indicating hesitation or interruption must be kept, and repeated punctuation (!!!, ???, !?) must be preserved"
 )
