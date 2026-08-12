@@ -1,6 +1,4 @@
 Principal (afeta os resultados da pesquisa):
-- Prompt: não traduzir nomes (não está no prompt atual)]
-- Prompt: Preservar recursos textuais (---, (), $#$#)
 - Tradução de onomatopeias (com fonte alternativa e opção de on/off)
 - Preservar negrito, itálico, caixa alta, cor, angulo, posição e bordas do texto
 
