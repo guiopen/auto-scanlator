@@ -20,7 +20,7 @@ def _union(parent: list[int], x: int, y: int) -> None:
 
 def group_detections(
     img: np.ndarray,
-    detections: list[tuple[str, tuple[tuple[int, int], ...]]],
+    detections: list[dict],
 ) -> list[dict]:
     config = get_config()
     n = len(detections)
@@ -28,8 +28,8 @@ def group_detections(
         return []
 
     rects = []
-    for _, poly in detections:
-        pts = np.array(poly, dtype=np.float32)
+    for det in detections:
+        pts = np.array(det["poly"], dtype=np.float32)
         rects.append(normalize_rect(pts))
 
     expanded = []
@@ -76,11 +76,9 @@ def group_detections(
     blocks = []
     for indices in groups.values():
         indices.sort()
-        texts = [detections[i][0] for i in indices]
+        texts = [detections[i]["text"] for i in indices]
         poly_points = [
-            [[int(pt[0]), int(pt[1])] for pt in poly]
-            for i in indices
-            for _, poly in [detections[i]]
+            [[int(pt[0]), int(pt[1])] for pt in detections[i]["poly"]] for i in indices
         ]
         blocks.append(
             {

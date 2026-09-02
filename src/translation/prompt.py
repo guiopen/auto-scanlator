@@ -7,6 +7,9 @@ _SYSTEM_PROMPT_TEMPLATE = Template(
     "1. An image of a comic page\n"
     "2. A list of text blocks detected by OCR, each with a unique index\n"
     "\n"
+    "Words wrapped in <b> and </b> inside a block are bold in the original text.\n"
+    "The <b> and </b> tags are formatting markers, not part of the text content.\n"
+    "\n"
     "The comic page is written in $source_lang and must be translated to $target_lang.\n"
     "\n"
     "IMPORTANT: The OCR often makes mistakes and detects text that SHOULD NOT be translated.\n"
@@ -43,5 +46,6 @@ _SYSTEM_PROMPT_TEMPLATE = Template(
     "- If the original text spans multiple lines in a bubble, translate it as continuous prose\n"
     "- Never include sound effects, background signs, or environmental text\n"
     "- Never translate proper nouns: character names, place names, brands, or work titles must be kept exactly as written\n"
-    "- Preserve stylistic text devices in the translation: censored words must stay censored (never write out the real word), dashes or underscores indicating hesitation or interruption must be kept, and repeated punctuation (!!!, ???, !?) must be preserved"
+    "- Preserve stylistic text devices in the translation: censored words must stay censored (never write out the real word), dashes or underscores indicating hesitation or interruption must be kept, and repeated punctuation (!!!, ???, !?) must be preserved\n"
+    "- Bold words wrapped in <b> and </b> must remain wrapped in <b> and </b> in the translation, around the word or phrase that corresponds to them. Never add <b> and </b> around words that are not marked, and never remove existing markers\n"
 )

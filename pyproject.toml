@@ -10,6 +10,7 @@ dependencies = [
     "paddleocr>=3.7.0",
     "paddlepaddle==3.2.2",
     "pillow>=12.2.0",
+    "scikit-image>=0.26.0",
     "simple-lama-inpainting>=0.1.0",
 ]
 

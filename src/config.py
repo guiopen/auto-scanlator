@@ -16,6 +16,15 @@ class Config:
     debug_merge: bool = False
     debug_inpaint: bool = False
     debug_insertion: bool = False
+    debug_bold: bool = False
+    bold_word_gap_ratio: float = 0.25
+    bold_depth_power: float = 1.5
+    bold_char_min_area: int = 4
+    bold_char_min_height_ratio: float = 0.4
+    bold_baseline_percentile: float = 50.0
+    bold_factor: float = 1.30
+    bold_factor_double: float = 1.35
+    bold_factor_single: float = 1.40
     llm_api_url: str = "http://127.0.0.1:8080/v1/chat/completions"
     llm_api_key: str = ""
     llm_model: str = ""

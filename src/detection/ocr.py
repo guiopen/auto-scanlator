@@ -17,9 +17,12 @@ class TextDetector:
             text_rec_score_thresh=config.rec_thresh,
         )
 
-    def detect(self, img: np.ndarray) -> list[tuple[str, tuple[tuple[int, int], ...]]]:
+    def detect(self, img: np.ndarray) -> list[dict]:
         return [
-            (str(text), tuple((int(pt[0]), int(pt[1])) for pt in poly))
+            {
+                "text": str(text),
+                "poly": tuple((int(p[0]), int(p[1])) for p in poly),
+            }
             for res in self._ocr.predict(img)
             for text, poly in zip(res["rec_texts"], res["rec_polys"])
             if str(text).strip()

@@ -78,7 +78,8 @@ def translate_page(
     target_lang: str,
 ) -> list[dict]:
     prompt_lines = "\n".join(
-        f"Block {i}: {block['original_text']}" for i, block in enumerate(grouped_blocks)
+        f"Block {i}: {block.get('marked_text', block['original_text'])}"
+        for i, block in enumerate(grouped_blocks)
     )
     full_prompt = (
         _SYSTEM_PROMPT_TEMPLATE.substitute(

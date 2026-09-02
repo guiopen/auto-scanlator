@@ -8,6 +8,7 @@
 - Python 3.12 (`.python-version`)
 - An LLM server at `http://127.0.0.1:8080` (configurable via `config.json` but that file is denied)
 - A true-type font at `fonts/font.ttf` (gitignored; required for text insertion)
+- An optional bold variant at `fonts/font-bold.ttf` (gitignored; without it, bold words render with the regular font)
 
 ## Architecture
 - Entry: `main.py` → `src/cli.py` (argparse) → `src/pipeline.py`

@@ -8,12 +8,14 @@ from src.debug import (
     debug_inpaint,
     debug_insertion,
     debug_merge,
+    debug_bold,
     debug_translation,
 )
+from src.detection.bold import classify_bold
 from src.detection.group_lines import group_detections
-from src.insertion.merge import merge_detections
 from src.detection.ocr import TextDetector
 from src.inpainting.lama import PageInpainter
+from src.insertion.merge import merge_detections
 from src.insertion.render import insert_text
 from src.languages import SUPPORTED_LANGUAGES
 from src.translation.llm import translate_page
@@ -35,13 +37,20 @@ def _run_pipeline(
     if config.debug_grouping:
         debug_grouping(img, grouped_blocks)
 
+    cleaned_page = inpainter.inpaint(img, grouped_blocks)
+    if config.debug_inpaint and cleaned_page is not None:
+        debug_inpaint(cleaned_page)
+
+    if cleaned_page is not None:
+        bold_words, baseline = classify_bold(
+            img, detections, grouped_blocks, cleaned_page
+        )
+        if config.debug_bold:
+            debug_bold(img, bold_words, baseline)
+
     blocks = translate_page(img, grouped_blocks, llm_source_lang, target_lang)
     if config.debug_translation:
         debug_translation(blocks)
-
-    cleaned_page = inpainter.inpaint(img, blocks)
-    if config.debug_inpaint and cleaned_page is not None:
-        debug_inpaint(cleaned_page)
 
     merged_blocks = merge_detections(img, blocks)
     if config.debug_merge:

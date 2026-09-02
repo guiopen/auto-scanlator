@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 import numpy as np
 from PIL import ImageFont
@@ -6,6 +7,33 @@ from PIL import ImageFont
 from src.config import get_config
 
 FONT_PATH = Path(__file__).parent.parent.parent / "fonts" / "font.ttf"
+FONT_BOLD_PATH = Path(__file__).parent.parent.parent / "fonts" / "font-bold.ttf"
+_TAG_RE = re.compile(r"(</?b>)")
+
+
+def load_font(path: Path, size: int) -> ImageFont.FreeTypeFont | None:
+    try:
+        return ImageFont.truetype(str(path), size)
+    except OSError:
+        return None
+
+
+def _marked_width(
+    text: str,
+    font: ImageFont.FreeTypeFont,
+    bold_font: ImageFont.FreeTypeFont | None,
+) -> float:
+    width = 0.0
+    bold = False
+    for segment in _TAG_RE.split(text):
+        if segment == "<b>":
+            bold = True
+        elif segment == "</b>":
+            bold = False
+        elif segment:
+            f = bold_font if (bold and bold_font is not None) else font
+            width += f.getlength(segment)
+    return width
 
 
 def _horizontal_span(mask: np.ndarray, y: int, height: int) -> tuple[int, int] | None:
@@ -19,6 +47,7 @@ def _horizontal_span(mask: np.ndarray, y: int, height: int) -> tuple[int, int] |
 def _greedy_wrap(
     words: list[str],
     font: ImageFont.FreeTypeFont,
+    bold_font: ImageFont.FreeTypeFont | None,
     mask: np.ndarray,
     y_start: int,
     font_height: int,
@@ -45,14 +74,14 @@ def _greedy_wrap(
             return None
 
         test_line = words[i]
-        test_width = font.getlength(test_line)
+        test_width = _marked_width(test_line, font, bold_font)
         if test_width > available:
             return None
 
         j = i + 1
         while j < len(words):
             candidate = test_line + " " + words[j]
-            candidate_width = font.getlength(candidate)
+            candidate_width = _marked_width(candidate, font, bold_font)
             if candidate_width <= available:
                 test_line = candidate
                 test_width = candidate_width
@@ -103,6 +132,7 @@ def fit_text(
     while lo <= hi:
         mid = (lo + hi) // 2
         font = ImageFont.truetype(str(FONT_PATH), mid)
+        bold_font = load_font(FONT_BOLD_PATH, mid)
         bbox = font.getbbox("Agy")
         font_height = int(bbox[3] - bbox[1])
         line_step = int(font_height * config.line_spacing)
@@ -114,6 +144,7 @@ def fit_text(
         lines = _greedy_wrap(
             words,
             font,
+            bold_font,
             mask,
             mask_top,
             font_height,
@@ -129,6 +160,7 @@ def fit_text(
             hi = mid - 1
 
     font = ImageFont.truetype(str(FONT_PATH), best_size)
+    bold_font = load_font(FONT_BOLD_PATH, best_size)
     bbox = font.getbbox("Agy")
     font_height = int(bbox[3] - bbox[1])
     line_step = int(font_height * config.line_spacing)
@@ -140,7 +172,7 @@ def fit_text(
 
         out = []
         for line_text, y, left, right, width in best_lines:
-            line_w = font.getlength(line_text)
+            line_w = _marked_width(line_text, font, bold_font)
             x = left + (right - left - line_w) / 2
             out.append((line_text, int(x), int(y + offset)))
         return best_size, out
@@ -157,7 +189,7 @@ def fit_text(
         margin_h = int(span_width * config.text_padding_h / 2)
         left = span[0] + margin_h
         right = span[1] - margin_h
-        word_w = font.getlength(word)
+        word_w = _marked_width(word, font, bold_font)
         x = left + (right - left - word_w) / 2
         out.append((word, int(x), int(y)))
         y += line_step

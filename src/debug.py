@@ -18,11 +18,40 @@ def _show_debug(title: str, img: np.ndarray, height: int = 720):
 
 def debug_detection(img: np.ndarray, detections: list, height: int = 720):
     overlay = img.copy()
-    for _, poly in detections:
-        pts = np.array([[pt[0], pt[1]] for pt in poly], dtype=np.int32)
+    for det in detections:
+        pts = np.array([[pt[0], pt[1]] for pt in det["poly"]], dtype=np.int32)
         cv2.fillPoly(overlay, [pts], (0, 255, 0))
     result = cv2.addWeighted(overlay, 0.4, img, 0.6, 0)
     _show_debug("Detection", result, height)
+
+
+def debug_bold(
+    img: np.ndarray,
+    bold_words: list[dict],
+    baseline: float,
+    height: int = 720,
+):
+    overlay = img.copy()
+    for w in bold_words:
+        pts = np.array(w["quad"], dtype=np.int32)
+        if w["is_bold"] is None:
+            color = (150, 150, 150)
+        elif w["is_bold"]:
+            color = (0, 0, 255)
+        else:
+            color = (0, 180, 0)
+        cv2.polylines(overlay, [pts], True, color, 2)
+    print(f"baseline bold_score: {baseline:.4f}")
+    for w in bold_words:
+        if w["is_bold"] is None:
+            verdict = "unknown"
+        elif w["is_bold"]:
+            verdict = "BOLD"
+        else:
+            verdict = "normal"
+        score = "n/a" if w["bold_score"] is None else f"{w['bold_score']:.4f}"
+        print(f"{verdict:7s} {score:>8s}  {w['word']}")
+    _show_debug("Bold", overlay, height)
 
 
 def debug_translation(blocks: list[dict]):

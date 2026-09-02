@@ -1,8 +1,44 @@
+import re
+
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from src.insertion.fit import FONT_PATH, fit_text
+from src.insertion.fit import FONT_BOLD_PATH, FONT_PATH, fit_text, load_font
+
+_OUTLINE = 2
+_TAG_RE = re.compile(r"(</?b>)")
+
+
+def _draw_marked_line(
+    draw: ImageDraw.ImageDraw,
+    x: int,
+    y: int,
+    line_text: str,
+    font: ImageFont.FreeTypeFont,
+    bold_font: ImageFont.FreeTypeFont | None,
+) -> int:
+    bold = False
+    for segment in _TAG_RE.split(line_text):
+        if segment == "<b>":
+            bold = True
+            continue
+        if segment == "</b>":
+            bold = False
+            continue
+        if not segment:
+            continue
+        f = bold_font if (bold and bold_font is not None) else font
+        draw.text(
+            (x, y),
+            segment,
+            font=f,
+            fill="black",
+            stroke_width=_OUTLINE,
+            stroke_fill="white",
+        )
+        x += int(f.getlength(segment))
+    return x
 
 
 def _render_rotated_block(
@@ -38,17 +74,11 @@ def _render_rotated_block(
         return None
 
     font = ImageFont.truetype(str(FONT_PATH), size)
+    bold_font = load_font(FONT_BOLD_PATH, size)
     canvas = Image.new("RGBA", (rw, rh), (0, 0, 0, 0))
     draw = ImageDraw.Draw(canvas)
     for line_text, x, y in lines:
-        draw.text(
-            (x, y),
-            line_text,
-            font=font,
-            fill="black",
-            stroke_width=2,
-            stroke_fill="white",
-        )
+        _draw_marked_line(draw, x, y, line_text, font, bold_font)
 
     rotated_canvas = canvas.rotate(-angle, expand=True)
     return rotated_canvas
@@ -74,15 +104,9 @@ def insert_text(
             mask = block["mask"]
             size, lines = fit_text(text, mask)
             font = ImageFont.truetype(str(FONT_PATH), size)
+            bold_font = load_font(FONT_BOLD_PATH, size)
             for line_text, x, y in lines:
-                draw.text(
-                    (x, y),
-                    line_text,
-                    font=font,
-                    fill="black",
-                    stroke_width=2,
-                    stroke_fill="white",
-                )
+                _draw_marked_line(draw, x, y, line_text, font, bold_font)
         else:
             rotated = _render_rotated_block(block, img_w, img_h)
             if rotated is None:
