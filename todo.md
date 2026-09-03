@@ -1,6 +1,6 @@
 Principal (afeta os resultados da pesquisa):
 - Tradução de onomatopeias (com fonte alternativa e opção de on/off)
-- Preservar negrito (feito), itálico, caixa alta, cor, angulo, posição e bordas do texto
+- Preservar negrito (feito), caixa alta, cor, angulo, posição e bordas do texto
 
 Secundario (melhora a funcionalidade ou a usabilidade):
 - Salvar a imagem de saída — o pipeline nunca persiste resultado, só mostra debug. Não existe saída em disco nenhuma
