@@ -168,7 +168,7 @@ def fit_text(
     if best_lines:
         total_height = font_height + (len(best_lines) - 1) * line_step
         available = mask_bottom - mask_top
-        offset = max(0, (available - total_height) // 2)
+        offset = (available - total_height) // 2 - bbox[1]
 
         out = []
         for line_text, y, left, right, width in best_lines:
@@ -191,7 +191,7 @@ def fit_text(
         right = span[1] - margin_h
         word_w = _marked_width(word, font, bold_font)
         x = left + (right - left - word_w) / 2
-        out.append((word, int(x), int(y)))
+        out.append((word, int(x), int(y - bbox[1])))
         y += line_step
 
     return best_size, out
