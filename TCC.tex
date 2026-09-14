@@ -1,0 +1,300 @@
+\documentclass[
+    12pt,
+    openright,
+    oneside,
+    a4paper,
+    english,
+    brazilian
+]{abntex2}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{indentfirst}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage[alf]{abntex2cite}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\renewcommand{\ABNTEXchapterfont}{\bfseries}
+\renewcommand{\ABNTEXsectionfont}{\bfseries}
+\renewcommand{\ABNTEXsubsectionfont}{\bfseries}
+
+%% Marcações de revisão - Retirar na versão final
+\newcommand{\attention}[1]{\textcolor{red}{#1}} 
+\newcommand{\propFileto}[1]{\textcolor{blue}{#1}} 
+\newcommand{\propGuilheme}[1]{\textcolor{magenta}{#1}}
+
+\renewcommand{\chapnumfont}{\large\bfseries}
+\renewcommand{\chaptitlefont}{\large\bfseries}
+\setsecheadstyle{\normalsize\bfseries}
+\setsubsecheadstyle{\normalsize\bfseries}
+\setsubsubsecheadstyle{\normalsize\bfseries}
+\setlength{\parskip}{6pt}
+
+\titulo{Auto Scanlator: Sistema Inteligente para Tradução e Letreiramento Automatizados de Histórias em Quadrinhos}
+\autor{Guilherme do Amaral Alves}
+\local{Florianópolis}
+\data{2027/2}
+\orientador{Prof. Renato Fileto}
+\instituicao{Universidade Federal de Santa Catarina}
+\tipotrabalho{Trabalho de Conclusão de Curso}
+\preambulo{Trabalho de conclusão de curso apresentado ao Departamento de Informática e Estatística da Universidade Federal de Santa Catarina como requisito parcial para a obtenção do grau de Bacharel em Sistemas de Informação.}
+
+\begin{document}
+\selectlanguage{brazil}
+\frenchspacing
+
+\imprimircapa
+\imprimirfolhaderosto
+
+\begin{folhadeaprovacao}
+  \begin{center}
+    {\ABNTEXchapterfont\large\imprimirautor}
+    \vspace*{\fill}
+    \begin{center}
+      \ABNTEXchapterfont\bfseries\Large\imprimirtitulo
+    \end{center}
+    \vspace*{\fill}
+    \hspace{.45\textwidth}
+    \begin{minipage}{.5\textwidth}
+      \imprimirpreambulo
+    \end{minipage}
+    \vspace*{\fill}
+  \end{center}
+  \begin{center}
+    Orientador: \imprimirorientador
+  \end{center}
+  \vspace*{\fill}
+  \begin{center}
+    Banca examinadora:
+  \end{center}
+  \vspace*{\fill}
+  \rule{8cm}{0.4pt}
+  \vspace*{\fill}
+  \rule{8cm}{0.4pt}
+  \vspace*{\fill}
+\end{folhadeaprovacao}
+
+\begin{resumo}
+\end{resumo}
+
+\pdfbookmark[0]{\listfigurename}{lof}
+\listoffigures*
+\cleardoublepage
+
+\pdfbookmark[0]{\listtablename}{lot}
+\listoftables*
+\cleardoublepage
+
+\pdfbookmark[0]{\contentsname}{toc}
+\tableofcontents*
+\cleardoublepage
+
+\textual
+
+\chapter{INTRODUÇÃO}
+\label{cap:introducao}
+
+Os quadrinhos estão entre os meios de expressão cultural de maior alcance no mundo contemporâneo, manifestando-se em tradições diversas, como o comic norte-americano, o quadrinho franco-belga, o mangá japonês, o webtoon coreano e o manhua chinês, cada uma com características próprias de linguagem visual e narrativa. Para alcançar públicos fora de seu idioma original, no entanto, essas obras dependem de tradução, um processo lento, custoso e especializado que limita quais delas se tornam acessíveis em outros idiomas. Essa dependência chega a ser tratada como questão estratégica de política pública, como ocorre na Coreia do Sul, onde a Korea Creative Content Agency ja propõe o uso de inteligencia artificial e sistemas de tradução automatizada como solução para o aumento de produtividade no processo de tradução \cite{kocca2025kwebtoons}. 
+
+Esse interesse institucional em automatizar a tradução, contudo, esbarra na natureza particular do meio: nos quadrinhos, o texto não é apenas portador de conteúdo verbal, ele é parte da imagem. \citeonline{eisner1985comics} mostra que o letreiramento, tratado graficamente e a serviço da história, funciona como uma extensão da imagem, transmitindo o clima da cena e a sugestão de som. A forma com que uma fala é grafada altera o que ela comunica: o traço manual carrega uma personalidade que o tipo mecânico não reproduz, o negrito em uma palavra adiciona som à leitura e o próprio contorno do balão informa o caráter do que está dentro dele \cite{eisner1985comics}. Disso decorre que traduzir quadrinhos envolve preservar dois significados ao mesmo tempo, o textual e o visual. Uma tradução indiferente à cor, ao peso e à disposição do texto original, ainda que verbalmente correta, perde parte do que a página comunicava.
+
+[INSERIR PAGINA TRADUZIDA DE FORMA "BURRA" SEM PRESERVAÇÃO ESTETICA]
+
+Nas pesquisas e ferramentas que automatizam esse processo, porém, a preservação do significado visual não acompanhou a do textual. Na dimensão visual, o progresso restringiu-se à remoção do texto original, impulsionada por melhores modelos de inpainting \cite{quan2024deeplearningbasedimagevideo}. O letreiramento, etapa que insere o texto traduzido de volta na página, jamais se constituiu como objeto de estudo: \citeonline{lippmann-etal-2025-context} afirmam desconhecer qualquer trabalho que proponha realizá-lo de forma automática, e o levantamento de \citeonline{vivoli2025missingpiecevisionlanguage}, que cataloga 31 tarefas de visão e linguagem sobre quadrinhos, não o inclui entre elas, embora liste a tradução, definida ali como tarefa de saída puramente textual. Esse cenário se repete nas ferramentas de código aberto, que fazem a remoção usando modelos de inpainting avançados, mas realizam o letreiramento de forma simples, indiferente aos atributos do texto original, como detalha a análise apresentada no Capítulo~\ref{sec:ferramentas}.
+
+Diante desse cenário, este trabalho propõe o desenvolvimento do Auto Scanlator, um sistema completo de tradução automatizada de histórias em quadrinhos com foco na preservação visual do texto. O sistema organiza-se em uma pipeline de quatro etapas, ilustrada na Figura~\ref{fig:pipeline}. A primeira realiza a detecção e o reconhecimento do texto presente na página. A segunda traduz, filtra e anota atributos do texto empregando um modelo de linguagem multimodal. A terceira remove o texto original da imagem por meio de inpainting. A quarta faz o letreiramento, inserindo o texto traduzido de volta na página utilizando os atributos anotados e outras informações, detalhadas no Capítulo~\ref{cap:desenvolvimento}.
+
+% [INSERIR FIGURA DA PIPELINE]
+
+\section{PROBLEMA DE PESQUISA}
+\label{sec:problema}
+
+O desinteresse pelo letreiramento nas pesquisas e ferramentas de tradução automática de quadrinhos acompanha o valor que a própria produção de quadrinhos atribui à etapa. \citeonline{assis2015letterer} observa que, na confecção de uma história em quadrinhos, o letreiramento é tratado como etapa técnica de produção, distinta do trabalho criativo da escrita e do desenho, e constantemente subvalorizado frente a ambos. O mesmo desbalanço aparece na automação: o levantamento de \citeonline{vivoli2025missingpiecevisionlanguage} cataloga 31 tarefas de visão e linguagem sobre quadrinhos sem incluir o letreiramento, \citeonline{lippmann-etal-2025-context} afirmam desconhecer trabalhos que o realizem automaticamente, as pipelines completas identificadas na literatura renderizam a tradução de forma indiferente aos atributos do texto original \cite{hinami2021fullyautomatedmangatranslation, narasimhan2025crossing}, e as ferramentas de código aberto disponíveis fazem o mesmo, como detalha o Capítulo~\ref{sec:ferramentas}.
+
+O problema de pesquisa deste trabalho consiste em determinar se um sistema automatizado é capaz de identificar os atributos tipográficos do texto original e reproduzi-los no letreiramento da página traduzida, com fidelidade superior à das ferramentas disponíveis, e se essa capacidade pode ser incorporada a uma pipeline completa de tradução sem perda de qualidade nas demais etapas. Dessa formulação decorrem \propFileto{a pergunta e}  as duas hipóteses que orientam a investigação, verificadas em comparação com as ferramentas analisadas no Capítulo~\ref{sec:ferramentas}, segundo os critérios de avaliação definidos no Capítulo~\ref{cap:metodologia}:
+
+\propFileto{Pergunta de Pesquisa: ...}
+
+\begin{description}
+    \item[H1.] É possível preservar no letreiramento automatizado de quadrinhos a cor, as bordas, o negrito, o itálico, o ângulo e a posição do texto original.
+    \item[H2.] É possível desenvolver um sistema completo de tradução de quadrinhos que produza páginas traduzidas com qualidade não inferior à das produzidas pelas ferramentas de código aberto disponíveis.
+\end{description}
+
+\subsection{Objetivos}
+
+\propFileto{O objetivo geral deste trabalho é ...}
+
+
+\propFileto{Os objetivos específicos são:}
+
+\begin{enumerate}
+%\begin{enumerate}[label=\alph*)]
+    \item Analisar comparativamente as ferramentas de código aberto disponíveis para tradução de quadrinhos, caracterizando suas abordagens de detecção, tradução e letreiramento e o tratamento dado aos atributos tipográficos do texto original;
+    \item Desenvolver uma pipeline integrada composta por detecção e reconhecimento óptico do texto, tradução contextualizada com filtragem dos blocos, anotação de seus atributos tipográficos e classificação do tipo de texto por modelo de linguagem multimodal, remoção do texto original por inpainting e letreiramento da página traduzida;
+    \item Identificar a cor, as bordas, o negrito e o itálico do texto original, empregando um modelo de linguagem multimodal e algoritmos dedicados de análise de imagem, e incorporar essas informações, junto ao ângulo e à posição obtidos na detecção, ao letreiramento;
+    \item Definir e aplicar um protocolo de avaliação que contemple a preservação dos atributos tipográficos e a qualidade da página traduzida, permitindo a verificação das hipóteses formuladas na Seção~\ref{sec:problema};
+    \item Disponibilizar a ferramenta resultante, operável por linha de comando, acompanhada de código-fonte e documentação.
+\end{enumerate}
+
+\section{ESCOPO E DELIMITAÇÕES}
+\label{sec:escopo}
+
+O sistema recebe as imagens das páginas de um quadrinho e devolve as mesmas páginas com o texto original substituído pela tradução, executando localmente as quatro etapas detalhadas no Capítulo~\ref{cap:desenvolvimento}. A interação ocorre por linha de comando. O desenvolvimento de interface gráfica não integra o escopo, assim como a otimização de desempenho computacional, de modo que o tempo de processamento das páginas não constitui objeto de avaliação.
+
+São contemplados para a tradução todos os tipos de texto da página, incluindo balões de fala, texto solto em cena e onomatopeias.
+
+Fica excluido do escopo obras de escrita vertical, caso típico do mangá japonês, porque a geometria do texto original deixa de servir de referência para o letreiramento em linguagem horizontal, problema que demandaria tratamento próprio.
+
+Respeitada essa restrição, o sistema admite qualquer par de idiomas suportado pelo componente de reconhecimento óptico e pelo modelo de linguagem multimodal. A avaliação, contudo, restringe-se aos pares português--inglês e coreano--português.
+
+\chapter{FUNDAMENTAÇÃO TEÓRICA}
+
+Este capítulo apresenta os conceitos necessários para a compreensão do sistema proposto, organizados em dois blocos. O primeiro caracteriza o domínio e a tarefa: as histórias em quadrinhos, o letreiramento, a tipografia e a tradução (Seções \ref{sec:quadrinhos} a \ref{sec:traducao}). O segundo apresenta as técnicas empregadas na pipeline e em sua avaliação: detecção e reconhecimento óptico de texto, modelos de linguagem multimodais, inpainting, edição de texto em cena e avaliação de qualidade de tradução (Seções \ref{sec:ocr} a \ref{sec:avaliacao}).
+
+\section{HISTÓRIAS EM QUADRINHOS}
+\label{sec:quadrinhos}
+
+Os quadrinhos constituem um meio de expressão próprio, e para os fins deste trabalho considera-se que o traço que os distingue das demais artes gráficas é o entrelaçamento entre palavra e imagem a serviço de um propósito narrativo, em que o sentido das palavras depende das imagens, e o das imagens, das palavras \cite{harvey1994art}.
+
+Nos quadrinhos, o texto se distribui em balões, legendas e elementos soltos na cena, além das onomatopeias, em que a palavra é desenhada e atua ao mesmo tempo como som e como imagem \cite{mccloud1993understanding}. A forma desse texto também carrega sentido: o estilo do letreiramento e o formato do balão comunicam emoção, tom e ênfase \cite{mccloud1993understanding}. Por isso, a tradução de quadrinhos envolve a preservação da forma do texto junto com seu conteúdo, questão desenvolvida nas duas seções seguintes.
+
+\section{LETREIRAMENTO}
+\label{sec:letreiramento}
+
+O letreiramento é a etapa da produção de quadrinhos em que o texto é inscrito na página, e dela resulta a forma com que cada fala, narração e onomatopeia chega ao leitor. Na confecção de uma obra, é tratado como etapa técnica de produção, distinta do trabalho criativo da escrita e do desenho, e constantemente subvalorizado frente a ambos \cite{assis2015letterer}.
+
+Na tradução, o letreiramento precisa ser refeito, uma vez que o texto traduzido raramente ocupa o mesmo espaço do original. Nas pipelines automáticas, a etapa corresponde a renderizar o texto traduzido sobre a imagem já limpa, com tamanho e posição de fonte otimizados para a região de texto disponível \cite{lippmann-etal-2025-context}. O que a etapa manipula, na produção original ou na tradução, é a forma visual do texto, objeto da seção seguinte.
+
+\section{TIPOGRAFIA}
+\label{sec:tipografia}
+
+A tipografia trata da forma visual do texto: a fonte em que ele é composto e os atributos que a modulam, como o peso, o estilo, a cor e o tamanho dos caracteres, além de sua disposição no espaço.
+
+Dentre esses atributos, este trabalho opera sobre seis. A cor do texto é a cor de preenchimento dos caracteres, e a borda, o contorno traçado ao redor deles em cor própria. Negrito e itálico são variações de peso e de inclinação dentro de uma mesma família tipográfica. O ângulo é a rotação do texto em relação à horizontal, e a posição, o lugar que ele ocupa na página.
+
+\section{TRADUÇÃO}
+\label{sec:traducao}
+
+Traduzir é reexpressar em um idioma o que foi dito em outro, e a tarefa não admite uma única resposta certa: uma mesma sentença possui tipicamente muitas traduções corretas, que variam na escolha e na ordem das palavras \cite{papineni-etal-2002-bleu}.
+
+A tradução automática é a realização dessa tarefa por um sistema computacional. Hoje ela é feita por grandes modelos de linguagem de propósito geral (Seção~\ref{sec:mllm}), capazes de seguir instruções e aprender com exemplos fornecidos no próprio contexto, e os ganhos de qualidade vêm do aproveitamento de contexto mais amplo, como o do documento inteiro \cite{Gain_2026}.
+
+Nos quadrinhos, a tradução conta ainda com uma prática amadora de grande escala, a scanlation, termo que combina digitalização (scan) e tradução (translation) e designa a tradução não autorizada de narrativas gráficas por fãs \cite{fabbretti2016use}. No mangá, caso mais comum da prática, fãs digitalizam as obras, traduzem seu texto e distribuem gratuitamente as versões traduzidas pela internet, movidos pela demanda que excede a oferta fora do Japão e pela disponibilidade das tecnologias digitais que permitem digitalizar e distribuir as obras \cite{lee2009between}. O trabalho é em geral repartido em grupo, em atividades de edição, tradução e letreiramento \cite{fabbretti2016use}.
+
+\section{DETECÇÃO E RECONHECIMENTO ÓPTICO DE TEXTO}
+\label{sec:ocr}
+
+A detecção e o reconhecimento óptico compõem as duas tarefas fundamentais da leitura automática de texto em imagens. A detecção identifica as regiões da imagem que contêm texto e delimita sua posição, enquanto o reconhecimento converte o conteúdo dessas regiões em caracteres legíveis por máquina \cite{long2020scenetextdetectionrecognition}. Ao contrário do texto digital, em que os caracteres já se encontram codificados, o texto presente em uma imagem precisa ser recuperado a partir dos pixels, sob variações de fonte, tamanho, orientação e fundo que tornam o problema substancialmente mais complexo \cite{long2020scenetextdetectionrecognition}.
+
+Tradicionalmente tratadas como etapas sequenciais e independentes, ambas as tarefas têm sido cada vez mais integradas em sistemas únicos que realizam detecção e reconhecimento em uma só passagem, abordagem que se consolidou como tendência da área com o avanço das técnicas baseadas em aprendizado profundo \cite{long2020scenetextdetectionrecognition}.
+
+\section{MODELOS DE LINGUAGEM MULTIMODAIS}
+\label{sec:mllm}
+
+Modelos de linguagem são sistemas treinados para compreender e gerar texto em linguagem natural. Os modelos atuais são redes neurais da arquitetura Transformer, introduzida por \citeonline{vaswani2023attentionneed}, treinadas sobre grandes volumes de texto, e os de maior escala recebem o nome de grandes modelos de linguagem (LLMs, na sigla em inglês) \cite{zhao2026surveylargelanguagemodels}.
+
+Os modelos multimodais (MLLMs) acrescentam a essa arquitetura o processamento de outras modalidades além do texto, como a imagem, mantendo um LLM como núcleo de raciocínio. O modelo interpreta o conteúdo visual diretamente e o combina com o textual, o que lhe permite, por exemplo, raciocinar sobre o texto presente em uma imagem sem uma etapa prévia de reconhecimento óptico \cite{Yin_2024}.
+
+\section{INPAINTING}
+\label{sec:inpainting}
+
+O inpainting é o preenchimento de regiões faltantes de uma imagem com conteúdo plausível. A prática vem da restauração manual de pinturas e fotografias danificadas e foi trazida ao processamento digital de imagens por \citeonline{10.1145/344779.344972}, com aplicações que vão da restauração de obras à remoção de objetos da cena.
+
+Trata-se de um problema que admite múltiplas soluções plausíveis, em especial quando as regiões a preencher são grandes, e o avanço recente da área veio dos métodos baseados em aprendizado profundo \cite{quan2024deeplearningbasedimagevideo}.
+
+\section{EDIÇÃO DE TEXTO EM CENA}
+\label{sec:edicao-em-cena}
+
+A edição de texto em cena (scene text editing) é a tarefa de substituir o texto presente em uma imagem por outro, preservando o estilo visual do texto original e reconstruindo o fundo sob ele. O estilo compreende fatores como a fonte, a cor, a orientação, a espessura do traço e a perspectiva espacial \cite{wu2019editing}. Diferentemente do letreiramento por renderização de fonte, a tarefa é abordada por modelos generativos, que sintetizam os novos caracteres imitando a aparência dos originais diretamente em nível de pixels \cite{wu2019editing}.
+
+\section{AVALIAÇÃO DE QUALIDADE DE TRADUÇÃO}
+\label{sec:avaliacao}
+
+Como a mesma sentença admite muitas traduções corretas (Seção~\ref{sec:traducao}), medir a qualidade de uma tradução é um problema sem gabarito único, estudado desde os primeiros sistemas de tradução automática. O critério de fundo é a avaliação humana, que é cara e lenta \cite{papineni-etal-2002-bleu}. As métricas automáticas surgiram como aproximação desse julgamento, de BLEU, que compara a saída do tradutor com traduções humanas de referência \cite{papineni-etal-2002-bleu}, às métricas treinadas sobre julgamentos humanos, como COMET, que elevaram a correlação com avaliadores \cite{rei-etal-2020-comet}. Todas, porém, dependem de uma tradução de referência contra a qual comparar, o que restringe sua aplicação a material que já possui tradução humana.
+
+Os grandes modelos de linguagem deram origem a uma abordagem distinta, conhecida como LLM-as-a-judge, em que um modelo capaz de seguir instruções atua como avaliador do material que lhe é apresentado. Modelos fortes nesse papel alcançam concordância com preferências humanas equivalente à concordância observada entre os próprios avaliadores humanos, mas apresentam vieses documentados: preferem a alternativa apresentada em determinada posição, favorecem respostas mais longas independentemente da qualidade e privilegiam textos gerados por si mesmos \cite{zheng2023judgingllmasajudgemtbenchchatbot}. Aplicada à tradução, a abordagem alcançou acurácia comparável à das melhores métricas em nível de sistema, com a particularidade de funcionar tanto com quanto sem tradução de referência \cite{kocmi2023largelanguagemodelsstateoftheart}.
+
+Nos materiais em que o texto integra a imagem, caso dos quadrinhos, o produto da tradução é uma página, e sua qualidade tem também uma dimensão visual, que um avaliador sem acesso à imagem não alcança. O julgamento por modelos de linguagem também se aplica a esse cenário: \citeonline{chen2024mllmasajudgeassessingmultimodalllmasajudge} demonstram que modelos multimodais podem exercer o papel de avaliadores em tarefas que envolvem imagem, e que sua concordância com avaliadores humanos depende da forma do julgamento, aproximando-se da concordância entre os próprios humanos quando o modelo compara alternativas entre si e caindo quando atribui notas isoladas ou ordena conjuntos de itens.
+
+\chapter{TRABALHOS RELACIONADOS}
+\label{cap:trabalhos-relacionados}
+
+Este capítulo apresenta os trabalhos que atacam o problema da tradução e retextualização automática de quadrinhos ou partes dele. A Seção \ref{sec:traducao-quadrinhos} cobre as pesquisas acadêmicas da área, da primeira pipeline completa aos estudos recentes com modelos de linguagem multimodais. A Seção \ref{sec:texto-em-imagens} apresenta a linha de pesquisa correlata mais próxima do diferencial deste trabalho, a tradução e edição de texto em imagens com preservação do estilo visual. A Seção \ref{sec:ferramentas} analisa as ferramentas de código aberto que implementam a pipeline completa e que servem de referência comparativa para as hipóteses deste trabalho. A Seção \ref{sec:sintese-comparativa} consolida a comparação e posiciona a lacuna que este trabalho ocupa.
+
+\section{TRADUÇÃO AUTOMÁTICA DE QUADRINHOS}
+\label{sec:traducao-quadrinhos}
+
+O primeiro sistema completo de tradução automática de mangás foi proposto por \cite{hinami2021fullyautomatedmangatranslation}, cobrindo desde a detecção do texto até a reinserção da tradução na página. Os autores tratam a tradução de mangás como um problema simultaneamente contextual e multimodal: balões isolados frequentemente não contêm informação suficiente para uma tradução correta, exigindo contexto de outros balões e da própria cena. Para isso, o sistema extrai três tipos de contexto da imagem: o agrupamento dos textos em cenas, por meio da detecção de quadros com Faster R-CNN; a ordem de leitura, estimada pela divisão recursiva da página; e etiquetas semânticas visuais previstas pelo modelo illustration2vec, como o gênero dos personagens. Esses elementos são concatenados como tokens à entrada de um modelo Transformer treinado sobre um corpus paralelo de quatro milhões de pares de sentenças, construído automaticamente pelos autores.
+
+Na avaliação com leitores bilíngues sobre o dataset OpenMantra (japonês para inglês), também introduzido no trabalho, a tradução por cenas obteve nota média 2,98 em escala de 1 a 5, superando com significância estatística o modelo sem contexto (2,76). O BLEU, em contrapartida, foi menor no modelo contextual (12,65 contra 14,11), o que os autores atribuem à reordenação natural das falas na tradução e apontam como indício de que a métrica é inadequada para o domínio.
+
+Na etapa de retextualização, o texto original é removido por inpainting com o modelo EdgeConnect e a tradução é renderizada com tamanho e posição de fonte que maximizam o preenchimento da região do balão. O artigo não descreve qualquer tratamento para preservar atributos visuais do texto original, como fonte, cor ou orientação. O escopo restringe-se a mangás japoneses traduzidos para inglês e chinês, e, embora o dataset seja público, o código do sistema não foi disponibilizado.
+
+Dando continuidade a essa linha, \cite{kaino-etal-2024-utilizing} atacam uma limitação específica dos métodos anteriores: o contexto utilizado ficava confinado à cena que contém o balão a ser traduzido, ignorando informação de outras cenas. Os autores propõem dois métodos complementares. O primeiro, de tradução sensível à cena anterior, concatena as falas da cena a ser traduzida com as da cena precedente, usando dois tipos de tokens especiais para distinguir trocas de cena e de balão. O segundo incorpora atributos bibliográficos da obra (série, autor, editora, revista e gênero), coletados da Wikipédia e da enciclopédia MangaPedia, como tokens anexados à entrada, aplicando uma abordagem de controle de estilo.
+
+Nos experimentos de tradução de japonês para inglês sobre o corpus de \cite{hinami2021fullyautomatedmangatranslation}, cada método melhorou isoladamente o desempenho, e a combinação de ambos alcançou o melhor resultado, com ganho de 4,24 pontos de BLEU sobre o modelo sem contexto (23,17 contra 18,93). A análise dos autores evidencia o papel da resolução de anáfora zero, em que sujeitos omitidos no japonês só podem ser recuperados pela cena anterior, e mostra que considerar apenas a cena imediatamente precedente foi o mais eficaz, com o desempenho degradando ao incluir cenas mais distantes.
+
+O trabalho restringe-se à etapa de tradução, de japonês para inglês, avaliada apenas por métricas automáticas (BLEU e COMET) sobre texto já extraído. Detecção, remoção e reinserção do texto na imagem não são tratadas, e o artigo não menciona disponibilização de código.
+
+A transição dos modelos supervisionados para os modelos de linguagem foi investigada por \cite{yang2024llmmanga}, no primeiro estudo dedicado ao uso de LLMs na tradução de mangás. Sobre o dataset OpenMantra, os autores compararam o GPT-3.5 com modelos supervisionados M2M100 de três tamanhos na tradução de japonês para inglês e chinês, e testaram três tipos de contexto no prompt: exemplos de tradução, falas adjacentes e descrições textuais das imagens geradas pelo modelo LLaVA. O GPT-3.5 superou os modelos supervisionados em todas as métricas já sem contexto algum, e os exemplos de tradução melhoraram ainda mais o resultado. As descrições visuais, porém, tiveram impacto mínimo ou até negativo, o que os autores registram como contraintuitivo para uma tarefa multimodal. A avaliação restringiu-se a métricas automáticas e à etapa de tradução.
+
+O trabalho mais recente dessa linha, de \cite{lippmann-etal-2025-context}, investiga até que ponto modelos de linguagem multimodais realizam tradução de mangás, avaliando sistematicamente o impacto da unidade de tradução, da extensão do contexto e do uso da imagem. Sobre o GPT-4 Turbo, os autores comparam abordagens que vão da tradução linha a linha até o volume inteiro em uma única consulta. As mais eficazes operam no nível da página: PBP-VIS, que fornece ao modelo o texto da página junto com sua imagem, e PBP-VIS-NUM, variante em que o conteúdo dos balões na imagem é substituído por números da ordem de leitura, permitindo ao modelo localizar cada fala sem depender de reconhecimento óptico próprio. Para contexto além da página, propõem manter um resumo incremental da história por meio de sumarização chain of density, fornecido ao modelo a cada página. O contraste com os achados de \cite{yang2024llmmanga} é informativo: o contexto visual que não havia ajudado quando convertido em descrições textuais para um modelo de texto passou a melhorar a tradução quando a imagem foi fornecida diretamente a um modelo multimodal.
+
+A avaliação usou o OpenMantra para o par japonês-inglês e um novo dataset japonês-polonês construído pelos autores, com 400 páginas e 3.705 linhas da obra Love Hina, o primeiro corpus paralelo do par e o maior dataset público de tradução de mangás até então. Nas métricas automáticas, o contexto visual da página melhorou consistentemente os resultados frente às abordagens puramente textuais e aos baselines. Na avaliação humana, conduzida por um tradutor profissional com a metodologia MQM, o PBP-VIS superou com folga o Google Tradutor, mas apresentou número significativamente maior de erros críticos que a tradução humana oficial. Um achado contraintuitivo do estudo é que contexto adicional além de uma única página não melhora a tradução: o método de resumo incremental superou as demais abordagens de contexto longo, e a tradução do volume inteiro em uma consulta teve o pior desempenho entre os métodos visuais.
+
+O estudo limita-se à etapa de tradução. A retextualização é apenas descrita no apêndice como guia para trabalhos futuros, sem ser executada, e os autores afirmam desconhecer qualquer trabalho prévio que realize o letreiramento de forma automática. O sistema depende de chamadas à API de um modelo proprietário, limitação reconhecida pelos próprios autores, que apontam a escassez de modelos multimodais de código aberto à época e deixam seu uso como trabalho futuro. O código da suíte de avaliação e os dados foram disponibilizados publicamente.
+
+Fora do eixo do mangá japonês, \cite{narasimhan2025crossing} apresentam uma pipeline completa para tradução de manhwas do indonésio para o inglês, motivada pelos desafios de um idioma com poucos recursos linguísticos. O sistema encadeia um detector YOLOv5 ajustado para balões de fala, reconhecimento com Tesseract, tradução com um modelo MarianMT ajustado em corpora paralelos indonésio-inglês e sobreposição do texto traduzido na imagem com as bibliotecas OpenCV e Pillow. Cada componente foi avaliado isoladamente com métricas próprias, mas a página final foi verificada apenas por inspeção visual dos autores, e o artigo não descreve remoção do texto original nem tratamento dos atributos visuais na reinserção. Trata-se de um preprint sem revisão por pares, relevante por ser, ao lado do sistema de \cite{hinami2021fullyautomatedmangatranslation}, uma das poucas pipelines completas identificadas na literatura consultada, e por ilustrar que mesmo os trabalhos fim a fim tratam a retextualização como etapa acessória.
+
+\section{TRADUÇÃO E EDIÇÃO DE TEXTO EM IMAGENS}
+\label{sec:texto-em-imagens}
+
+Fora do domínio dos quadrinhos, a preservação da aparência do texto ao substituí-lo em uma imagem foi formulada como problema de pesquisa na linha de edição de texto em cena, inaugurada em nível de palavra por \cite{wu2019editing}. A SRNet recebe a imagem de uma palavra e o texto substituto e gera a palavra nova imitando o estilo da original, definido pelos autores como a combinação de fatores como fonte, cor, orientação, espessura do traço e perspectiva espacial. A rede decompõe a tarefa em três módulos treinados em conjunto: conversão do texto guiada pelo esqueleto dos caracteres, inpainting do fundo e fusão dos dois resultados. Demonstrada em fotografias de cena e em tradução visual do inglês para o chinês, a abordagem depende de caixas delimitadoras fornecidas na inferência e opera por síntese generativa de pixels, com falhas relatadas pelos próprios autores em fontes raras e estruturas espaciais complexas.
+
+A combinação dessa preocupação com a tradução deu origem à tarefa de tradução dentro da imagem (in-image machine translation, IIMT), definida por \cite{mansimov-etal-2020-towards} como a transformação de uma imagem contendo texto em um idioma em outra imagem contendo o mesmo texto no idioma de destino. Nesse estudo preliminar, os autores propõem um modelo neural de ponta a ponta supervisionado apenas em nível de pixels, com resultados iniciais promissores e uma discussão dos modos de falha comuns. A vertente de ponta a ponta foi aprofundada por \cite{lan-etal-2024-translatotron} com o Translatotron-V(ision), motivado explicitamente pela dificuldade dos métodos em cascata de reter as características visuais da imagem original. O modelo acrescenta ao par codificador-decodificador de imagem um tokenizador visual, que converte as longas sequências de pixels em tokens discretos, e um decodificador de texto na língua de destino, que alivia o alinhamento entre idiomas. Os autores também propõem a métrica Structure-BLEU, sensível à localização, e relatam desempenho competitivo com sistemas em cascata usando 70,9\% dos parâmetros, superando com folga o modelo em nível de pixels.
+
+Na vertente em cascata, o AnyTrans \cite{qian-etal-2024-anytrans} é o trabalho mais próximo do problema atacado por este TCC. Trata-se de um framework sem treinamento, construído inteiramente com modelos de código aberto, que cobre a pipeline completa: o PP-OCR localiza e reconhece o texto de origem; os textos reconhecidos são concatenados em uma única sequência com marcadores no estilo HTML que preservam a informação posicional, enviada a um modelo de linguagem, com ou sem visão, para tradução contextualizada com poucos exemplos; e a fusão do texto traduzido na imagem é feita por uma versão modificada do modelo de difusão AnyText, que remove os traços dos caracteres originais por inpainting fino e redimensiona a caixa de edição conforme a razão entre os comprimentos do texto original e do traduzido.
+
+Para a avaliação, os autores construíram o MTIT6, conjunto de teste com 1.199 imagens em seis pares de idiomas entre chinês, inglês, japonês e coreano, composto de imagens gerais de cena. A qualidade da tradução foi medida com BLEU e COMET, com os melhores resultados nas configurações com os modelos Qwen-1.5-110B e Qwen-VL-Max, e a qualidade visual foi comparada com tradutores de imagem comerciais: avaliações humanas e automáticas indicaram superioridade sobre as ferramentas da Microsoft e da Apple em autenticidade e consistência de estilo, com resultados comparáveis aos do Google, e falhas concentradas na geração de texto em fontes pequenas.
+
+Em conjunto, essa linha demonstra que a preservação da aparência visual na tradução de texto em imagens é uma preocupação ativa da pesquisa recente. Seus métodos, porém, operam sobre imagens gerais de cena, com textos curtos em caixas delimitadas, e resolvem a reinserção por síntese generativa, seja por difusão, seja pela decodificação direta de pixels. Nenhum dos trabalhos identificados trata de quadrinhos, cujo texto se organiza em balões e blocos de múltiplas linhas com convenções tipográficas próprias.
+
+\section{FERRAMENTAS DE CÓDIGO ABERTO}
+\label{sec:ferramentas}
+% Parágrafo de abertura: critério de seleção das 4 ferramentas
+% (ativas, código aberto, pipeline completa) e o papel delas como
+% baseline das hipóteses H1 e H2.
+% Depois, prosa com 1-2 parágrafos por ferramenta:
+% comic-translate, Manga Image Translator, BallonsTranslator, Koharu.
+% Cada uma: arquitetura da pipeline, componentes por etapa e,
+% em destaque, como faz a reinserção tipográfica.
+% Fonte: repositório e documentação oficial, citados como software.
+
+\section{SÍNTESE COMPARATIVA}
+\label{sec:sintese-comparativa}
+% Tabela única cruzando os 6 trabalhos + 4 ferramentas contra as
+% dimensões da sua pipeline: etapas cobertas, contexto usado na
+% tradução, executa retextualização, preserva atributos tipográficos,
+% tipos de quadrinho, execução local, código disponível.
+% Fecha com 1-2 parágrafos posicionando a lacuna e o seu sistema.
+
+\chapter{Auto Scanlator}
+\label{cap:AutoScanlator}
+
+
+\chapter{AVALIAÇÃO E RESULTADOS}
+
+\chapter{CONCLUSÃO}
+
+\postextual
+
+\bibliography{referencias}
+
+\chapter*{ANEXOS E APÊNDICES}
+\addcontentsline{toc}{chapter}{ANEXOS E APÊNDICES}
+
+\end{document}
