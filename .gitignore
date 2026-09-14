@@ -210,3 +210,11 @@ __marimo__/
 config.json
 fonts/
 comics/
+TCC.aux
+TCC.fdb_latexmk
+TCC.fls
+TCC.lof
+TCC.lot
+TCC.pdf
+TCC.synctex.gz
+TCC.toc
