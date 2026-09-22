@@ -1,6 +1,7 @@
 ### TEXTO:
 - Adicionar figuras ao texto
 - Aderessar "problema de pesquisa" e distinção de objetivos sugeridos pelo fileto
+- Rever o tamanho da fonte: assumimos que ele não importa para a estética, mas posição e espaço ocupado importam; falta fundamentar essa hierarquia
 
 ### CODIGO:
 Principal (afeta os resultados da pesquisa):

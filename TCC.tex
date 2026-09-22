@@ -100,28 +100,27 @@
 
 Os quadrinhos estão entre os meios de expressão cultural de maior alcance no mundo contemporâneo, manifestando-se em tradições diversas, como o comic norte-americano, o quadrinho franco-belga, o mangá japonês, o webtoon coreano e o manhua chinês, cada uma com características próprias de linguagem visual e narrativa. Para alcançar públicos fora de seu idioma original, no entanto, essas obras dependem de tradução, um processo lento, custoso e especializado que limita quais delas se tornam acessíveis em outros idiomas. Essa dependência chega a ser tratada como questão estratégica de política pública, como ocorre na Coreia do Sul, onde a Korea Creative Content Agency já propõe o uso de inteligência artificial e sistemas de tradução automatizada como solução para o aumento de produtividade no processo de tradução \cite{kocca2025kwebtoons}. 
 
-Esse interesse institucional em automatizar a tradução, contudo, esbarra na natureza particular do meio: nos quadrinhos, o texto não é apenas portador de conteúdo verbal, ele é parte da imagem. \citeonline{eisner1985comics} mostra que o letreiramento, tratado graficamente e a serviço da história, funciona como uma extensão da imagem, transmitindo o clima da cena e a sugestão de som. A forma com que uma fala é grafada altera o que ela comunica: o traço manual carrega uma personalidade que o tipo mecânico não reproduz, o negrito em uma palavra adiciona som à leitura e o próprio contorno do balão informa o caráter do que está dentro dele \cite{eisner1985comics}. Disso decorre que traduzir quadrinhos envolve preservar dois significados ao mesmo tempo, o textual e o visual. Uma tradução indiferente à cor, ao peso e à disposição do texto original, ainda que verbalmente correta, perde parte do que a página comunicava.
+Esse interesse institucional em automatizar a tradução, contudo, esbarra na natureza particular do meio: nos quadrinhos, o texto não é apenas portador de conteúdo verbal, ele é parte da imagem. \citeonline{eisner1985comics} mostra que o letreiramento, tratado graficamente e a serviço da história, funciona como uma extensão da imagem, transmitindo o clima da cena e a sugestão de som. A forma com que uma fala é grafada altera o que ela comunica: o negrito em uma palavra adiciona som à leitura e o próprio contorno do balão informa o caráter do que está dentro dele \cite{eisner1985comics}. Disso decorre que traduzir quadrinhos envolve preservar dois significados ao mesmo tempo, o textual e o visual. Uma tradução indiferente à cor, ao peso e à disposição do texto original, ainda que verbalmente correta, perde parte do que a página comunicava.
 
-[INSERIR PAGINA TRADUZIDA DE FORMA "BURRA" SEM PRESERVAÇÃO ESTETICA]
+\attention{INSERIR PAGINA TRADUZIDA DE FORMA "BURRA" SEM PRESERVAÇÃO ESTETICA}
 
 Nas pesquisas e ferramentas que automatizam esse processo, porém, a preservação do significado visual não acompanhou a do textual. Na dimensão visual, o progresso restringiu-se à remoção do texto original, impulsionada por melhores modelos de inpainting \cite{quan2024deeplearningbasedimagevideo}. O letreiramento, etapa que insere o texto traduzido de volta na página, jamais se constituiu como objeto de estudo: \citeonline{lippmann-etal-2025-context} afirmam desconhecer qualquer trabalho que proponha realizá-lo de forma automática, e o levantamento de \citeonline{vivoli2025missingpiecevisionlanguage}, que cataloga 31 tarefas de visão e linguagem sobre quadrinhos, não o inclui entre elas, embora liste a tradução, definida ali como tarefa de saída puramente textual. Esse cenário se repete nas ferramentas de código aberto, que fazem a remoção usando modelos de inpainting avançados, mas realizam o letreiramento de forma simples, indiferente aos atributos do texto original, como detalha a análise apresentada na Seção~\ref{sec:ferramentas}.
 
+\attention{TIRAR EXPLICAÇÃO DA PIPELINE}
 Diante desse cenário, este trabalho propõe o desenvolvimento do Auto Scanlator, um sistema completo de tradução automatizada de histórias em quadrinhos com foco na preservação visual do texto. O sistema organiza-se em uma pipeline de quatro etapas, ilustrada na Figura~\ref{fig:pipeline}. A primeira realiza a detecção e o reconhecimento do texto presente na página. A segunda traduz, filtra e anota atributos do texto empregando um modelo de linguagem multimodal. A terceira remove o texto original da imagem por meio de inpainting. A quarta faz o letreiramento, inserindo o texto traduzido de volta na página utilizando os atributos anotados e outras informações, detalhadas no Capítulo~\ref{cap:auto-scanlator}.
-
-% [INSERIR FIGURA DA PIPELINE]
 
 \section{PROBLEMA DE PESQUISA}
 \label{sec:problema}
 
 O desinteresse pelo letreiramento nas pesquisas e ferramentas de tradução automática de quadrinhos acompanha o valor que a própria produção de quadrinhos atribui à etapa. \citeonline{assis2015letterer} observa que, na confecção de uma história em quadrinhos, o letreiramento é tratado como etapa técnica de produção, distinta do trabalho criativo da escrita e do desenho, e constantemente subvalorizado frente a ambos. O mesmo desbalanço aparece na automação: o levantamento de \citeonline{vivoli2025missingpiecevisionlanguage} cataloga 31 tarefas de visão e linguagem sobre quadrinhos sem incluir o letreiramento, \citeonline{lippmann-etal-2025-context} afirmam desconhecer trabalhos que o realizem automaticamente, as pipelines completas identificadas na literatura renderizam a tradução de forma indiferente aos atributos do texto original \cite{hinami2021fullyautomatedmangatranslation, narasimhan2025crossing}, e as ferramentas de código aberto disponíveis fazem o mesmo, como detalha a Seção~\ref{sec:ferramentas}.
 
-O problema de pesquisa deste trabalho consiste em determinar se um sistema automatizado é capaz de identificar os atributos tipográficos do texto original e reproduzi-los no letreiramento da página traduzida, com fidelidade superior à das ferramentas disponíveis, e se essa capacidade pode ser incorporada a uma pipeline completa de tradução sem perda de qualidade nas demais etapas. Dessa formulação decorrem \propFileto{a pergunta e} as duas hipóteses que orientam a investigação, verificadas em comparação com as ferramentas analisadas na Seção~\ref{sec:ferramentas}, segundo os critérios de avaliação definidos no Capítulo~\ref{cap:metodologia}:
+O problema de pesquisa deste trabalho consiste em determinar se um sistema automatizado é capaz de identificar os atributos tipográficos do texto de fala e narração e reproduzi-los no letreiramento da página traduzida, com fidelidade superior à das ferramentas disponíveis, e se essa capacidade pode ser incorporada a uma pipeline completa de tradução sem perda de qualidade nas demais etapas. Dessa formulação decorrem \propFileto{a pergunta e} as duas hipóteses que orientam a investigação, verificadas em comparação com as ferramentas analisadas na Seção~\ref{sec:ferramentas}, segundo os critérios de avaliação definidos no Capítulo~\ref{cap:metodologia}:
 
 \propFileto{Pergunta de Pesquisa: ...}
 
 \begin{description}
-    \item[H1.] É possível preservar no letreiramento automatizado de quadrinhos a cor, as bordas, o negrito, o itálico, o ângulo e a posição do texto original.
-    \item[H2.] É possível desenvolver um sistema completo de tradução de quadrinhos que produza páginas traduzidas com qualidade não inferior à das produzidas pelas ferramentas de código aberto disponíveis.
+    \item[H1.] É possível preservar no letreiramento automatizado de quadrinhos a cor, as bordas, o negrito, o ângulo e a posição do texto de fala e narração.
+    \item[H2.] É possível desenvolver uma pipeline completa de tradução de quadrinhos que produza páginas traduzidas com qualidade não inferior à das produzidas pelas ferramentas de código aberto disponíveis.
 \end{description}
 
 \subsection{Objetivos}
@@ -135,7 +134,7 @@ O problema de pesquisa deste trabalho consiste em determinar se um sistema autom
 %\begin{enumerate}[label=\alph*)]
     \item Analisar comparativamente as ferramentas de código aberto disponíveis para tradução de quadrinhos, caracterizando suas abordagens de detecção, tradução e letreiramento e o tratamento dado aos atributos tipográficos do texto original;
     \item Desenvolver uma pipeline integrada composta por detecção e reconhecimento óptico do texto, tradução contextualizada com filtragem dos blocos, anotação de seus atributos tipográficos e classificação do tipo de texto por modelo de linguagem multimodal, remoção do texto original por inpainting e letreiramento da página traduzida;
-    \item Identificar a cor, as bordas, o negrito e o itálico do texto original, empregando um modelo de linguagem multimodal e algoritmos dedicados de análise de imagem, e incorporar essas informações, junto ao ângulo e à posição obtidos na detecção, ao letreiramento;
+    \item Identificar a cor, as bordas e o negrito do texto de fala e narração, empregando um modelo de linguagem multimodal e algoritmos dedicados de análise de imagem, e incorporar essas informações, junto ao ângulo e à posição obtidos na detecção, ao letreiramento;
     \item Definir e aplicar um protocolo de avaliação que contemple a preservação dos atributos tipográficos e a qualidade da página traduzida, permitindo a verificação das hipóteses formuladas na Seção~\ref{sec:problema};
     \item Disponibilizar a ferramenta resultante, operável por linha de comando, acompanhada de código-fonte e documentação.
 \end{enumerate}
@@ -143,9 +142,9 @@ O problema de pesquisa deste trabalho consiste em determinar se um sistema autom
 \section{ESCOPO E DELIMITAÇÕES}
 \label{sec:escopo}
 
-O sistema recebe as imagens das páginas de um quadrinho e devolve as mesmas páginas com o texto original substituído pela tradução, executando localmente as quatro etapas detalhadas no Capítulo~\ref{cap:auto-scanlator}. A interação ocorre por linha de comando. O desenvolvimento de interface gráfica não integra o escopo, assim como a otimização de desempenho computacional, de modo que o tempo de processamento das páginas não constitui objeto de avaliação.
+O sistema recebe as imagens das páginas de um quadrinho e devolve as mesmas páginas com o texto de fala e narração substituído pela tradução, executando localmente as quatro etapas detalhadas no Capítulo~\ref{cap:auto-scanlator}. A interação ocorre por linha de comando. O desenvolvimento de interface gráfica não integra o escopo, assim como a otimização de desempenho computacional, de modo que o tempo de processamento das páginas não constitui objeto de avaliação.
 
-São contemplados para a tradução todos os tipos de texto da página, incluindo balões de fala, texto solto em cena e onomatopeias.
+Quanto aos tipos de texto apresentados na Seção~\ref{sec:quadrinhos}, este trabalho abrange os dois primeiros: os diálogos e os comentários/narração. O texto escrito sobre objetos da cena e as onomatopeias permanecem intactos. Essa delimitação de escopo deixa a tradução e letreiramento desses dois tipos como sugestão para trabalhos futuros.
 
 Ficam excluídas do escopo obras de escrita vertical, caso típico do mangá japonês, porque a geometria do texto original deixa de servir de referência para o letreiramento em linguagem horizontal, problema que demandaria tratamento próprio.
 
@@ -158,10 +157,24 @@ Este capítulo apresenta os conceitos necessários para a compreensão do sistem
 \section{HISTÓRIAS EM QUADRINHOS}
 \label{sec:quadrinhos}
 
-Os quadrinhos constituem um meio de expressão próprio, e para os fins deste trabalho considera-se que o traço que os distingue das demais artes gráficas é o entrelaçamento entre palavra e imagem a serviço de um propósito narrativo, em que o sentido das palavras depende das imagens, e o das imagens, das palavras \cite{harvey1994art}.
+Os quadrinhos são uma narrativa contada por imagens dispostas em sequência, com a fala dos personagens incorporada a elas na forma de balões. O balão faz a fala participar do mesmo modo visual das imagens, e é por isso que vemos e lemos as palavras dos personagens assim como vemos os personagens e lemos suas ações; nas demais artes gráficas, os personagens estão restritos ao gesto e à pantomima. O que os quadrinhos fazem é tecer palavra e imagem para contar uma história, uma mistura em que nenhuma das duas é satisfatória sozinha \cite{harvey1994art}. É essa mistura que distingue os quadrinhos do cinema, em que o movimento é mostrado, enquanto nos quadrinhos toda a ação é reduzida a momentos estáticos; da narrativa ilustrada, em que as imagens retratam momentos sucessivos de um texto que existiria sem elas; e da literatura e das artes puramente pictóricas, que empregam apenas um dos dois modos, já que os quadrinhos empregam técnicas de ambas sem serem nem puramente verbais nem exclusivamente pictóricos \cite{harvey1994art}.
 
-Nos quadrinhos, o texto se distribui em balões, legendas e elementos soltos na cena, além das onomatopeias, em que a palavra é desenhada e atua ao mesmo tempo como som e como imagem \cite{mccloud1993understanding}. A forma desse texto também carrega sentido: o estilo do letreiramento e o formato do balão comunicam emoção, tom e ênfase \cite{mccloud1993understanding}. Por isso, a tradução de quadrinhos envolve a preservação da forma do texto junto com seu conteúdo, questão desenvolvida nas duas seções seguintes.
+\citeonline{borodo2016exploring} divide o texto de uma página de quadrinhos em ao menos quatro tipos:
 
+\begin{itemize}
+    \item \textbf{Diálogos}: a fala dos personagens, que aparece em geral nos balões, mas pode estar solta sobre a cena;
+    \item \textbf{Comentários e narração}: o texto que conduz a história por fora da voz dos personagens, em recordatórios ou em trechos acima e abaixo dos quadros;
+    \item \textbf{Texto escrito sobre objetos da cena}: placas, letreiros, títulos de jornais e nomes de estabelecimentos, integrados ao desenho dos cenários;
+    \item \textbf{Onomatopeias}: as palavras que representam os sons da cena, como o impacto de um golpe ou o ruído de uma porta.
+\end{itemize}
+
+\propGuilheme{INSERIR AQUI UM QUADRO DEMONSTRANDO OS 4 TIPOS}
+
+Os dois primeiros tipos são lidos como fala ou narração; os dois últimos fazem parte do desenho, e a Seção~\ref{sec:escopo} delimita o tratamento que este trabalho dá a cada um.
+
+O texto de uma página de quadrinhos precisa preencher um espaço físico, e por isso é imagem antes de ser texto: sua forma gráfica tem precedência sobre sua qualidade textual, e as palavras só cumprem seu papel depois que a forma já criou uma atmosfera na leitura. Nos quadrinhos, portanto, o texto é subordinado às imagens, e a existência de quadrinhos sem palavras é evidência disso \cite{rota2004translationvisibility}. Essa forma carrega sentido: o estilo do letreiramento e o formato do balão comunicam emoção, tom e ênfase \cite{mccloud1993understanding}. Por isso, a tradução de quadrinhos envolve a preservação da forma do texto junto com seu conteúdo, questão desenvolvida nas duas seções seguintes.
+
+\propGuilheme{Podemos expandir com o estado da pratica na industria, incluindo balanço entre posição/espaço do texto e tamanho da fonte}
 \section{LETREIRAMENTO}
 \label{sec:letreiramento}
 
@@ -174,7 +187,14 @@ Na tradução, o letreiramento precisa ser refeito, uma vez que o texto traduzid
 
 A tipografia trata da forma visual do texto: a fonte em que ele é composto e os atributos que a modulam, como o peso, o estilo, a cor e o tamanho dos caracteres, além de sua disposição no espaço.
 
-Dentre esses atributos, este trabalho opera sobre seis. A cor do texto é a cor de preenchimento dos caracteres, e a borda, o contorno traçado ao redor deles em cor própria. Negrito e itálico são variações de peso e de inclinação dentro de uma mesma família tipográfica. O ângulo é a rotação do texto em relação à horizontal, e a posição, o lugar que ele ocupa na página.
+Dentre esses atributos, este trabalho opera sobre cinco:
+\begin{itemize}
+    \item \textbf{Cor}: a cor de preenchimento dos caracteres;
+    \item \textbf{Borda}: o contorno traçado ao redor dos caracteres em cor própria;
+    \item \textbf{Negrito}: a variação de peso dentro de uma mesma família tipográfica;
+    \item \textbf{Ângulo}: a rotação do texto em relação à horizontal;
+    \item \textbf{Posição}: o lugar que o texto ocupa na página.
+\end{itemize}
 
 \section{TRADUÇÃO}
 \label{sec:traducao}
@@ -206,6 +226,7 @@ O inpainting é o preenchimento de regiões faltantes de uma imagem com conteúd
 
 Trata-se de um problema que admite múltiplas soluções plausíveis, em especial quando as regiões a preencher são grandes, e o avanço recente da área veio dos métodos baseados em aprendizado profundo \cite{quan2024deeplearningbasedimagevideo}.
 
+\attention{PODEMOS REMOVER, NAO VAMOS USAR}
 \section{EDIÇÃO DE TEXTO EM CENA}
 \label{sec:edicao-em-cena}
 
