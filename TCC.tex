@@ -13,6 +13,7 @@
 \usepackage{indentfirst}
 \usepackage{color}
 \usepackage{graphicx}
+\usepackage{float}
 \usepackage{microtype}
 \usepackage[alf]{abntex2cite}
 \usepackage{enumitem}
@@ -102,7 +103,12 @@ Os quadrinhos estão entre os meios de expressão cultural de maior alcance no m
 
 Esse interesse institucional em automatizar a tradução, contudo, esbarra na natureza particular do meio: nos quadrinhos, o texto não é apenas portador de conteúdo verbal, ele é parte da imagem. \citeonline{eisner1985comics} mostra que o letreiramento, tratado graficamente e a serviço da história, funciona como uma extensão da imagem, transmitindo o clima da cena e a sugestão de som. A forma com que uma fala é grafada altera o que ela comunica: o negrito em uma palavra adiciona som à leitura e o próprio contorno do balão informa o caráter do que está dentro dele \cite{eisner1985comics}. Disso decorre que traduzir quadrinhos envolve preservar dois significados ao mesmo tempo, o textual e o visual. Uma tradução indiferente à cor, ao peso e à disposição do texto original, ainda que verbalmente correta, perde parte do que a página comunicava.
 
-\attention{INSERIR PAGINA TRADUZIDA DE FORMA "BURRA" SEM PRESERVAÇÃO ESTETICA}
+\begin{figure}[H]
+    \caption{Página traduzida sem a preservação dos atributos tipográficos do texto}
+    \label{fig:pagina-sem-preservacao}
+    \includegraphics[width=0.7\textwidth]{imagens/pagina_sem_preservacao.png}
+    \fonte{quadrinho \textit{Mais Rápido que uma Bala}, de Cadu Simões e Fred Hildebrand (2021), traduzido pelo software Manga Image Translator.}
+\end{figure}
 
 Nas pesquisas e ferramentas que automatizam esse processo, porém, a preservação do significado visual não acompanhou a do textual. Na dimensão visual, o progresso restringiu-se à remoção do texto original, impulsionada por melhores modelos de inpainting \cite{quan2024deeplearningbasedimagevideo}. O letreiramento, etapa que insere o texto traduzido de volta na página, jamais se constituiu como objeto de estudo: \citeonline{lippmann-etal-2025-context} afirmam desconhecer qualquer trabalho que proponha realizá-lo de forma automática, e o levantamento de \citeonline{vivoli2025missingpiecevisionlanguage}, que cataloga 31 tarefas de visão e linguagem sobre quadrinhos, não o inclui entre elas, embora liste a tradução, definida ali como tarefa de saída puramente textual. Esse cenário se repete nas ferramentas de código aberto, que fazem a remoção usando modelos de inpainting avançados, mas realizam o letreiramento de forma simples, indiferente aos atributos do texto original, como detalha a análise apresentada na Seção~\ref{sec:ferramentas}.
 
