@@ -112,9 +112,8 @@ Esse interesse institucional em automatizar a tradução, contudo, esbarra na na
 
 Nas pesquisas e ferramentas que automatizam esse processo, porém, a preservação do significado visual não acompanhou a do textual. Na dimensão visual, o progresso restringiu-se à remoção do texto original, impulsionada por melhores modelos de inpainting \cite{quan2024deeplearningbasedimagevideo}. O letreiramento, etapa que insere o texto traduzido de volta na página, jamais se constituiu como objeto de estudo: \citeonline{lippmann-etal-2025-context} afirmam desconhecer qualquer trabalho que proponha realizá-lo de forma automática, e o levantamento de \citeonline{vivoli2025missingpiecevisionlanguage}, que cataloga 31 tarefas de visão e linguagem sobre quadrinhos, não o inclui entre elas, embora liste a tradução, definida ali como tarefa de saída puramente textual. Esse cenário se repete nas ferramentas de código aberto, que fazem a remoção usando modelos de inpainting avançados, mas realizam o letreiramento de forma simples, indiferente aos atributos do texto original, como detalha a análise apresentada na Seção~\ref{sec:ferramentas}.
 
-\attention{TIRAR EXPLICAÇÃO DA PIPELINE}
-Diante desse cenário, este trabalho propõe o desenvolvimento do Auto Scanlator, um sistema completo de tradução automatizada de histórias em quadrinhos com foco na preservação visual do texto. O sistema organiza-se em uma pipeline de quatro etapas, ilustrada na Figura~\ref{fig:pipeline}. A primeira realiza a detecção e o reconhecimento do texto presente na página. A segunda traduz, filtra e anota atributos do texto empregando um modelo de linguagem multimodal. A terceira remove o texto original da imagem por meio de inpainting. A quarta faz o letreiramento, inserindo o texto traduzido de volta na página utilizando os atributos anotados e outras informações, detalhadas no Capítulo~\ref{cap:auto-scanlator}.
-
+Diante desse cenário, este trabalho propõe o desenvolvimento do Auto Scanlator, um sistema de tradução automatizada de histórias em quadrinhos com foco na preservação dos atributos tipográficos do texto no letreiramento. A Figura~\ref{fig:pipeline} apresenta uma visão geral do sistema, cujo funcionamento é detalhado no Capítulo~\ref{cap:auto-scanlator}.
+    
 \section{PROBLEMA DE PESQUISA}
 \label{sec:problema}
 
