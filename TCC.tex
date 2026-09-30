@@ -117,27 +117,26 @@ Diante desse cenário, este trabalho propõe o desenvolvimento do Auto Scanlator
 \section{PROBLEMA DE PESQUISA}
 \label{sec:problema}
 
-O desinteresse pelo letreiramento nas pesquisas e ferramentas de tradução automática de quadrinhos acompanha o valor que a própria produção de quadrinhos atribui à etapa. \citeonline{assis2015letterer} observa que, na confecção de uma história em quadrinhos, o letreiramento é tratado como etapa técnica de produção, distinta do trabalho criativo da escrita e do desenho, e constantemente subvalorizado frente a ambos. O mesmo desbalanço aparece na automação: o levantamento de \citeonline{vivoli2025missingpiecevisionlanguage} cataloga 31 tarefas de visão e linguagem sobre quadrinhos sem incluir o letreiramento, \citeonline{lippmann-etal-2025-context} afirmam desconhecer trabalhos que o realizem automaticamente, as pipelines completas identificadas na literatura renderizam a tradução de forma indiferente aos atributos do texto original \cite{hinami2021fullyautomatedmangatranslation, narasimhan2025crossing}, e as ferramentas de código aberto disponíveis fazem o mesmo, como detalha a Seção~\ref{sec:ferramentas}.
+O desinteresse pelo letreiramento nas pesquisas e ferramentas de tradução automática de quadrinhos acompanha o valor que a própria produção de quadrinhos atribui à etapa. \citeonline{assis2015letterer} observa que, na confecção de uma história em quadrinhos, o letreiramento é tratado como etapa técnica de produção, distinta do trabalho criativo da escrita e do desenho, e constantemente subvalorizado frente a ambos. O mesmo desbalanço aparece na automação: o levantamento de \citeonline{vivoli2025missingpiecevisionlanguage} cataloga 31 tarefas de visão e linguagem sobre quadrinhos sem incluir o letreiramento, \citeonline{lippmann-etal-2025-context} afirmam desconhecer trabalhos que o realizem automaticamente, as pipelines completas identificadas na literatura renderizam a tradução de forma indiferente aos atributos do texto original \cite{hinami2021fullyautomatedmangatranslation, narasimhan2025crossing}, e as ferramentas de código aberto analisadas na Seção~\ref{sec:ferramentas} fazem o mesmo.
 
-O problema de pesquisa deste trabalho consiste em determinar se um sistema automatizado é capaz de identificar os atributos tipográficos do texto de fala e narração e reproduzi-los no letreiramento da página traduzida, com fidelidade superior à das ferramentas disponíveis, e se essa capacidade pode ser incorporada a uma pipeline completa de tradução sem perda de qualidade nas demais etapas. Dessa formulação decorrem \propFileto{a pergunta e} as duas hipóteses que orientam a investigação, verificadas em comparação com as ferramentas analisadas na Seção~\ref{sec:ferramentas}, segundo os critérios de avaliação definidos no Capítulo~\ref{cap:metodologia}:
+O problema de pesquisa deste trabalho consiste em determinar se um sistema automatizado é capaz de identificar os atributos tipográficos do texto de fala e narração e reproduzi-los no letreiramento, e se essa capacidade pode ser incorporada a uma pipeline completa de tradução sem prejuízo às demais etapas. Disso decorre a pergunta que orienta a investigação.
 
-\propFileto{Pergunta de Pesquisa: ...}
+\textbf{Pergunta de pesquisa:} é possível desenvolver uma pipeline automatizada de tradução de quadrinhos que preserve, no letreiramento, a cor, as bordas, o negrito, o ângulo e a posição do texto de fala e narração, e produza páginas traduzidas com qualidade não inferior à das ferramentas de código aberto analisadas?
+
+Para respondê-la, o trabalho adota duas hipóteses, verificadas por comparação com as ferramentas analisadas na Seção~\ref{sec:ferramentas}, segundo os critérios de avaliação definidos no Capítulo~\ref{cap:metodologia}.
 
 \begin{description}
-    \item[H1.] É possível preservar no letreiramento automatizado de quadrinhos a cor, as bordas, o negrito, o ângulo e a posição do texto de fala e narração.
-    \item[H2.] É possível desenvolver uma pipeline completa de tradução de quadrinhos que produza páginas traduzidas com qualidade não inferior à das produzidas pelas ferramentas de código aberto disponíveis.
+    \item[H1.] Esses atributos podem ser preservados no letreiramento automatizado de quadrinhos.
+    \item[H2.] Uma pipeline de tradução de quadrinhos pode produzir páginas traduzidas com qualidade não inferior à das ferramentas de código aberto analisadas.
 \end{description}
 
 \subsection{Objetivos}
 
-\propFileto{O objetivo geral deste trabalho é ...}
-
-
-\propFileto{Os objetivos específicos são:}
+O objetivo geral deste trabalho é desenvolver e avaliar o Auto Scanlator, uma pipeline completa de tradução automatizada de quadrinhos com foco na preservação dos atributos tipográficos do texto de fala e narração no letreiramento. Para alcançá-lo, o trabalho tem os seguintes objetivos específicos:
 
 \begin{enumerate}
 %\begin{enumerate}[label=\alph*)]
-    \item Analisar comparativamente as ferramentas de código aberto disponíveis para tradução de quadrinhos, caracterizando suas abordagens de detecção, tradução e letreiramento e o tratamento dado aos atributos tipográficos do texto original;
+    \item Analisar comparativamente as ferramentas de código aberto para tradução de quadrinhos, caracterizando suas abordagens de detecção, tradução e letreiramento e o tratamento dado aos atributos tipográficos do texto original;
     \item Desenvolver uma pipeline integrada composta por detecção e reconhecimento óptico do texto, tradução contextualizada com filtragem dos blocos, anotação de seus atributos tipográficos e classificação do tipo de texto por modelo de linguagem multimodal, remoção do texto original por inpainting e letreiramento da página traduzida;
     \item Identificar a cor, as bordas e o negrito do texto de fala e narração, empregando um modelo de linguagem multimodal e algoritmos dedicados de análise de imagem, e incorporar essas informações, junto ao ângulo e à posição obtidos na detecção, ao letreiramento;
     \item Definir e aplicar um protocolo de avaliação que contemple a preservação dos atributos tipográficos e a qualidade da página traduzida, permitindo a verificação das hipóteses formuladas na Seção~\ref{sec:problema};
