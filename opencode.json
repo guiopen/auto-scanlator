@@ -4,5 +4,13 @@
     "read": {
       "**/config.json": "deny"
     }
+  },
+  "mcp": {
+    "servers": {
+      "drawio": {
+        "type": "local",
+        "command": ["npx", "-y", "@drawio/mcp"]
+      }
+    }
   }
 }
