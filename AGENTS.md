@@ -43,13 +43,8 @@ Título: Auto Scanlator: Sistema Inteligente para Tradução e Letreiramento Aut
 Resumo: Este trabalho propõe o desenvolvimento do Auto Scanlator, um sistema completo de tradução automatizada de histórias em quadrinhos com foco na preservação visual do texto. O sistema organiza-se em uma pipeline de quatro etapas: a primeira realiza a detecção e o reconhecimento do texto presente na página. A segunda traduz, filtra e anota atributos do texto empregando um modelo de linguagem multimodal. A terceira remove o texto original da imagem por meio de inpainting. A quarta faz o letreiramento, inserindo o texto traduzido de volta na página utilizando os atributos anotados e outras informações.
 
 Hipóteses:
-H1 - O emprego de modelos de linguagem multimodais viabiliza a preservação de
-atributos tipográfico-visuais do texto original na retextualização de quadrinhos,
-produzindo páginas traduzidas com maior fidelidade visual ao original do que as
-geradas pelas ferramentas de código aberto disponíveis.
-H2 - O sistema proposto, que integra a pipeline completa de tradução e retextualização
-em uma única aplicação de uso local, produz páginas traduzidas com qualidade
-textual e visual não inferior à das ferramentas de código aberto disponíveis.
+H1 - É possível preservar no letreiramento automatizado de quadrinhos a cor, as bordas, o negrito, o ângulo e a posição do texto de fala e narração.
+H2 - É possível desenvolver uma pipeline completa de tradução de quadrinhos que produza páginas traduzidas com qualidade não inferior à das produzidas pelas ferramentas de código aberto disponíveis.
 
 ---
 
