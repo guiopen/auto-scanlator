@@ -6,6 +6,7 @@
 ### CODIGO:
 Principal (afeta os resultados da pesquisa):
 - Preservar negrito (feito), caixa alta (feito), cor, angulo (feito), posição (feito) e bordas do texto
+- Ter um balanço entre legibilidade (tamanho de fonte) e posição/espaço do texto.
 
 Secundario (melhora a funcionalidade ou a usabilidade):
 - Salvar a imagem de saída — o pipeline nunca persiste resultado, só mostra debug. Não existe saída em disco nenhuma

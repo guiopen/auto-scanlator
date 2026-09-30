@@ -178,13 +178,16 @@ Os dois primeiros tipos são lidos como fala ou narração; os dois últimos faz
 
 O texto de uma página de quadrinhos precisa preencher um espaço físico, e por isso é imagem antes de ser texto: sua forma gráfica tem precedência sobre sua qualidade textual, e as palavras só cumprem seu papel depois que a forma já criou uma atmosfera na leitura. Nos quadrinhos, portanto, o texto é subordinado às imagens, e a existência de quadrinhos sem palavras é evidência disso \cite{rota2004translationvisibility}. Essa forma carrega sentido: o estilo do letreiramento e o formato do balão comunicam emoção, tom e ênfase \cite{mccloud1993understanding}. Por isso, a tradução de quadrinhos envolve a preservação da forma do texto junto com seu conteúdo, questão desenvolvida nas duas seções seguintes.
 
-\propGuilheme{Podemos expandir com o estado da pratica na industria, incluindo balanço entre posição/espaço do texto e tamanho da fonte}
 \section{LETREIRAMENTO}
 \label{sec:letreiramento}
 
 O letreiramento é a etapa da produção de quadrinhos em que o texto é inscrito na página, e dela resulta a forma com que cada fala, narração e onomatopeia chega ao leitor. Na confecção de uma obra, é tratado como etapa técnica de produção, distinta do trabalho criativo da escrita e do desenho, e constantemente subvalorizado frente a ambos \cite{assis2015letterer}.
 
-Na tradução, o letreiramento precisa ser refeito, uma vez que o texto traduzido raramente ocupa o mesmo espaço do original. Nas pipelines automáticas, a etapa corresponde a renderizar o texto traduzido sobre a imagem já limpa, com tamanho e posição de fonte otimizados para a região de texto disponível \cite{lippmann-etal-2025-context}. O que a etapa manipula, na produção original ou na tradução, é a forma visual do texto, objeto da seção seguinte.
+Na tradução, o letreiramento parte de um material já desenhado e costuma ser executado por um profissional distinto do tradutor. O tradutor entrega o texto em forma de roteiro, com as ocorrências numeradas na ordem de leitura, e o letreirista o aplica à página, distribuindo o texto nos balões e redesenhando as onomatopeias e os textos escritos sobre objetos da cena \cite{assis2016especificidades, assis2018aprox, linsley2020letterer}. As páginas costumam chegar com o texto original achatado na arte, de modo que o letreirista também precisa removê-lo e reconstruir o desenho por baixo, retoque que os profissionais descrevem como uma das etapas mais demoradas do trabalho \cite{linsley2020letterer, gizmodo2025letterer, linsley2021jenten}.
+
+O ajuste do texto ao balão é mais restrito do que na produção original, porque a forma e a posição dos balões foram definidas para o idioma de partida \cite{jones2020mangalettering}. O letreiramento busca reproduzir a disposição do texto original \cite{linsley2021jenten} e se orienta por três restrições, a legibilidade do texto, a fidelidade a essa disposição e as normas da editora \cite{bovia2019lettering}. Na prática profissional, o texto é formatado para caber no balão, com quebras de linha e hifenização, e o encurtamento de uma fala pode ser pedido ao tradutor \cite{jones2020mangalettering}. O balão, por sua vez, é reformado e redimensionado para acomodar o novo volume de texto, alcance que chega a praticamente todos os balões de uma página \cite{piekos-hand-lettering, klein2021interview}.
+
+Nas pipelines automáticas, a etapa corresponde a renderizar o texto traduzido sobre a imagem já limpa, com tamanho e posição de fonte otimizados para a região de texto disponível \cite{lippmann-etal-2025-context}. O que a etapa manipula, na produção original ou na tradução, é a forma visual do texto, objeto da seção seguinte.
 
 \attention{INSERIR AQUI A FIGURA DO MESMO TEXTO LETREIRADO DE FORMAS DIFERENTES}
 
@@ -230,7 +233,7 @@ Os modelos multimodais (MLLMs) acrescentam a essa arquitetura o processamento de
 \section{INPAINTING}
 \label{sec:inpainting}
 
-O inpainting é o preenchimento de regiões faltantes de uma imagem com conteúdo plausível. A prática vem da restauração manual de pinturas e fotografias danificadas e foi trazida ao processamento digital de imagens por \citeonline{10.1145/344779.344972}, com aplicações que vão da restauração de obras à remoção de objetos da cena.
+O inpainting é o preenchimento de regiões faltantes de uma imagem com conteúdo plausível. A prática vem da restauração manual de pinturas e fotografias danificadas e foi trazida ao processamento digital de imagens por \citeonline{10.1145/344779.344972}, com aplicações que vão da restauração de obras à remoção de objetos da cena. Na tradução de quadrinhos, o inpainting corresponde ao retoque que o letreirista faz manualmente na arte para remover o texto original antes de aplicar a tradução (Seção~\ref{sec:letreiramento}) \cite{linsley2020letterer}.
 
 Trata-se de um problema que admite múltiplas soluções plausíveis, em especial quando as regiões a preencher são grandes, e o avanço recente da área veio dos métodos baseados em aprendizado profundo \cite{quan2024deeplearningbasedimagevideo}.
 
