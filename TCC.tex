@@ -254,55 +254,24 @@ Nos materiais em que o texto integra a imagem, caso dos quadrinhos, o produto da
 \chapter{TRABALHOS RELACIONADOS}
 \label{cap:trabalhos-relacionados}
 
-\propGuilheme{Sugestão: mover o capítulo AUTO SCANLATOR para antes deste, ou dividir este capítulo em dois, um com as pesquisas antes do desenvolvimento e outro com as ferramentas de código aberto depois.}
+\section{PIPELINES COMPLETAS DE TRADUÇÃO DE QUADRINHOS}
+\label{sec:pipelines-completas}
 
-Este capítulo apresenta os trabalhos que atacam o problema da tradução e retextualização automática de quadrinhos ou partes dele. A Seção~\ref{sec:traducao-quadrinhos} cobre as pesquisas acadêmicas da área, da primeira pipeline completa aos estudos recentes com modelos de linguagem multimodais. A Seção~\ref{sec:texto-em-imagens} apresenta a linha de pesquisa correlata mais próxima do diferencial deste trabalho, a tradução e edição de texto em imagens com preservação do estilo visual. A Seção~\ref{sec:ferramentas} analisa as ferramentas de código aberto que implementam a pipeline completa e que servem de referência comparativa para as hipóteses deste trabalho. A Seção~\ref{sec:sintese-comparativa} consolida a comparação e posiciona a lacuna que este trabalho ocupa.
+\citeonline{hinami2021fullyautomatedmangatranslation}
 
-\section{TRADUÇÃO AUTOMÁTICA DE QUADRINHOS}
-\label{sec:traducao-quadrinhos}
+\citeonline{narasimhan2025crossing}
 
-O primeiro sistema completo de tradução automática de mangás foi proposto por \cite{hinami2021fullyautomatedmangatranslation}, cobrindo desde a detecção do texto até a reinserção da tradução na página. Os autores tratam a tradução de mangás como um problema simultaneamente contextual e multimodal: balões isolados frequentemente não contêm informação suficiente para uma tradução correta, exigindo contexto de outros balões e da própria cena. Para isso, o sistema extrai três tipos de contexto da imagem: o agrupamento dos textos em cenas, por meio da detecção de quadros com Faster R-CNN; a ordem de leitura, estimada pela divisão recursiva da página; e etiquetas semânticas visuais previstas pelo modelo illustration2vec, como o gênero dos personagens. Esses elementos são concatenados como tokens à entrada de um modelo Transformer treinado sobre um corpus paralelo de quatro milhões de pares de sentenças, construído automaticamente pelos autores.
+\section{TRADUÇÃO CONTEXTUALIZADA DE QUADRINHOS}
+\label{sec:traducao-contextualizada}
 
-Na avaliação com leitores bilíngues sobre o dataset OpenMantra (japonês para inglês), também introduzido no trabalho, a tradução por cenas obteve nota média 2,98 em escala de 1 a 5, superando com significância estatística o modelo sem contexto (2,76). O BLEU, em contrapartida, foi menor no modelo contextual (12,65 contra 14,11), o que os autores atribuem à reordenação natural das falas na tradução e apontam como indício de que a métrica é inadequada para o domínio.
+\citeonline{kaino-etal-2024-utilizing}
 
-Na etapa de retextualização, o texto original é removido por inpainting com o modelo EdgeConnect e a tradução é renderizada com tamanho e posição de fonte que maximizam o preenchimento da região do balão. O artigo não descreve qualquer tratamento para preservar atributos visuais do texto original, como fonte, cor ou orientação. O escopo restringe-se a mangás japoneses traduzidos para inglês e chinês, e, embora o dataset seja público, o código do sistema não foi disponibilizado.
+\citeonline{yang2024llmmanga}
 
-Dando continuidade a essa linha, \cite{kaino-etal-2024-utilizing} atacam uma limitação específica dos métodos anteriores: o contexto utilizado ficava confinado à cena que contém o balão a ser traduzido, ignorando informação de outras cenas. Os autores propõem dois métodos complementares. O primeiro, de tradução sensível à cena anterior, concatena as falas da cena a ser traduzida com as da cena precedente, usando dois tipos de tokens especiais para distinguir trocas de cena e de balão. O segundo incorpora atributos bibliográficos da obra (série, autor, editora, revista e gênero), coletados da Wikipédia e da enciclopédia MangaPedia, como tokens anexados à entrada, aplicando uma abordagem de controle de estilo.
-
-Nos experimentos de tradução de japonês para inglês sobre o corpus de \cite{hinami2021fullyautomatedmangatranslation}, cada método melhorou isoladamente o desempenho, e a combinação de ambos alcançou o melhor resultado, com ganho de 4,24 pontos de BLEU sobre o modelo sem contexto (23,17 contra 18,93). A análise dos autores evidencia o papel da resolução de anáfora zero, em que sujeitos omitidos no japonês só podem ser recuperados pela cena anterior, e mostra que considerar apenas a cena imediatamente precedente foi o mais eficaz, com o desempenho degradando ao incluir cenas mais distantes.
-
-O trabalho restringe-se à etapa de tradução, de japonês para inglês, avaliada apenas por métricas automáticas (BLEU e COMET) sobre texto já extraído. Detecção, remoção e reinserção do texto na imagem não são tratadas, e o artigo não menciona disponibilização de código.
-
-A transição dos modelos supervisionados para os modelos de linguagem foi investigada por \cite{yang2024llmmanga}, no primeiro estudo dedicado ao uso de LLMs na tradução de mangás. Sobre o dataset OpenMantra, os autores compararam o GPT-3.5 com modelos supervisionados M2M100 de três tamanhos na tradução de japonês para inglês e chinês, e testaram três tipos de contexto no prompt: exemplos de tradução, falas adjacentes e descrições textuais das imagens geradas pelo modelo LLaVA. O GPT-3.5 superou os modelos supervisionados em todas as métricas já sem contexto algum, e os exemplos de tradução melhoraram ainda mais o resultado. As descrições visuais, porém, tiveram impacto mínimo ou até negativo, o que os autores registram como contraintuitivo para uma tarefa multimodal. A avaliação restringiu-se a métricas automáticas e à etapa de tradução.
-
-O trabalho mais recente dessa linha, de \cite{lippmann-etal-2025-context}, investiga até que ponto modelos de linguagem multimodais realizam tradução de mangás, avaliando sistematicamente o impacto da unidade de tradução, da extensão do contexto e do uso da imagem. Sobre o GPT-4 Turbo, os autores comparam abordagens que vão da tradução linha a linha até o volume inteiro em uma única consulta. As mais eficazes operam no nível da página: PBP-VIS, que fornece ao modelo o texto da página junto com sua imagem, e PBP-VIS-NUM, variante em que o conteúdo dos balões na imagem é substituído por números da ordem de leitura, permitindo ao modelo localizar cada fala sem depender de reconhecimento óptico próprio. Para contexto além da página, propõem manter um resumo incremental da história por meio de sumarização chain of density, fornecido ao modelo a cada página. O contraste com os achados de \cite{yang2024llmmanga} é informativo: o contexto visual que não havia ajudado quando convertido em descrições textuais para um modelo de texto passou a melhorar a tradução quando a imagem foi fornecida diretamente a um modelo multimodal.
-
-A avaliação usou o OpenMantra para o par japonês-inglês e um novo dataset japonês-polonês construído pelos autores, com 400 páginas e 3.705 linhas da obra Love Hina, o primeiro corpus paralelo do par e o maior dataset público de tradução de mangás até então. Nas métricas automáticas, o contexto visual da página melhorou consistentemente os resultados frente às abordagens puramente textuais e aos baselines. Na avaliação humana, conduzida por um tradutor profissional com a metodologia MQM, o PBP-VIS superou com folga o Google Tradutor, mas apresentou número significativamente maior de erros críticos que a tradução humana oficial. Um achado contraintuitivo do estudo é que contexto adicional além de uma única página não melhora a tradução: o método de resumo incremental superou as demais abordagens de contexto longo, e a tradução do volume inteiro em uma consulta teve o pior desempenho entre os métodos visuais.
-
-O estudo limita-se à etapa de tradução. A retextualização é apenas descrita no apêndice como guia para trabalhos futuros, sem ser executada, e os autores afirmam desconhecer qualquer trabalho prévio que realize o letreiramento de forma automática. O sistema depende de chamadas à API de um modelo proprietário, limitação reconhecida pelos próprios autores, que apontam a escassez de modelos multimodais de código aberto à época e deixam seu uso como trabalho futuro. O código da suíte de avaliação e os dados foram disponibilizados publicamente.
-
-Fora do eixo do mangá japonês, \cite{narasimhan2025crossing} apresentam uma pipeline completa para tradução de manhwas do indonésio para o inglês, motivada pelos desafios de um idioma com poucos recursos linguísticos. O sistema encadeia um detector YOLOv5 ajustado para balões de fala, reconhecimento com Tesseract, tradução com um modelo MarianMT ajustado em corpora paralelos indonésio-inglês e sobreposição do texto traduzido na imagem com as bibliotecas OpenCV e Pillow. Cada componente foi avaliado isoladamente com métricas próprias, mas a página final foi verificada apenas por inspeção visual dos autores, e o artigo não descreve remoção do texto original nem tratamento dos atributos visuais na reinserção. Trata-se de um preprint sem revisão por pares, relevante por ser, ao lado do sistema de \cite{hinami2021fullyautomatedmangatranslation}, uma das poucas pipelines completas identificadas na literatura consultada, e por ilustrar que mesmo os trabalhos fim a fim tratam a retextualização como etapa acessória.
+\citeonline{lippmann-etal-2025-context}
 
 \section{FERRAMENTAS DE CÓDIGO ABERTO}
 \label{sec:ferramentas}
-% Parágrafo de abertura: critério de seleção das 4 ferramentas
-% (ativas, código aberto, pipeline completa) e o papel delas como
-% baseline das hipóteses H1 e H2.
-% Depois, prosa com 1-2 parágrafos por ferramenta:
-% comic-translate, Manga Image Translator, BallonsTranslator, Koharu.
-% Cada uma: arquitetura da pipeline, componentes por etapa e,
-% em destaque, como faz a reinserção tipográfica.
-% Fonte: repositório e documentação oficial, citados como software.
-
-\section{SÍNTESE COMPARATIVA}
-\label{sec:sintese-comparativa}
-
-\attention{INSERIR AQUI A TABELA COMPARATIVA DAS FERRAMENTAS}
-% Tabela única cruzando os 6 trabalhos + 4 ferramentas contra as
-% dimensões da sua pipeline: etapas cobertas, contexto usado na
-% tradução, executa retextualização, preserva atributos tipográficos,
-% tipos de quadrinho, execução local, código disponível.
-% Fecha com 1-2 parágrafos posicionando a lacuna e o seu sistema.
 
 \chapter{AUTO SCANLATOR}
 \label{cap:auto-scanlator}
