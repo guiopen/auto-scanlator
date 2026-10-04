@@ -297,6 +297,79 @@ Nos três trabalhos, a tradução melhora quando o modelo recebe mais do que o t
 \section{FERRAMENTAS DE CÓDIGO ABERTO}
 \label{sec:ferramentas}
 
+Esta seção reúne as ferramentas de código aberto que executam a pipeline completa de tradução de quadrinhos, da detecção do texto ao letreiramento, e que servem de referência para a verificação das hipóteses (Seção~\ref{sec:problema}). A análise se baseia no código-fonte e na documentação de cada ferramenta, nas versões indicadas nas referências.
+
+O Manga Image Translator \cite{mangaimagetranslator}, distribuído sob a licença GPL-3.0, é escrito em Python e pode ser usado por linha de comando, como servidor FastAPI ou por uma interface web. Sua pipeline encadeia detecção (DBNet, CTD, CRAFT ou Paddle), reconhecimento óptico (48px, 48px\_ctc, 32px ou mocr), agrupamento das linhas detectadas, tradução, inpainting e renderização. A tradução pode ser feita por serviços remotos ou por modelos locais, entre eles NLLB, M2M100 e Sugoi. O foco declarado do projeto é o japonês, mas o reconhecimento óptico atende a vários sistemas de escrita, e o idioma de origem não é escolhido pelo usuário, sendo classificado automaticamente. A ferramenta exporta a página nos formatos XCF, PSD e PDF por meio do GIMP, além das imagens sem o texto original, para edição manual.
+
+O Koharu \cite{koharu}, distribuído sob a licença Apache-2.0, é uma aplicação de desktop escrita em Rust com o framework Tauri e interface em Next.js. Sua pipeline tem quatro etapas, a detecção (RF-DETR Seg), o reconhecimento óptico (PaddleOCR-VL, Hayai, Manga OCR ou Baberu), a tradução, por LLM remoto ou local no formato GGUF, e o inpainting (LaMa, AOT, FLUX.2 Klein ou RORem), e o letreiramento é composto no canvas do editor. O idioma de origem não é selecionável e recebe por padrão a etiqueta ja-JP, enquanto o de destino é escolhido em um catálogo de 42 idiomas, cuja disponibilidade depende do provedor de tradução. A ferramenta inclui um editor completo e exporta arquivos PSD em camadas e CBZ.
+
+O BallonsTranslator \cite{ballonstranslator}, distribuído sob a licença GPL-3.0, é uma aplicação de desktop em Python com interface Qt, que também pode ser executada sem interface gráfica. Cada etapa pode ser ativada ou desativada separadamente, com detecção por CTD, YSG, CTBD ou Stariver, reconhecimento óptico por manga-ocr, mit48px, Paddle, o OCR do sistema operacional, Google Vision ou LLM, tradução por Google, DeepL, M2M100, Sugoi, Sakura ou LLM, este configurado por perfis OpenAI, Codex, LM Studio ou Ollama, e inpainting por cv2, PatchMatch, AOT, LaMa, Flux ou LLM. Os idiomas de origem dependem do detector e do reconhecedor escolhidos, e os de destino, do motor de tradução. O texto vertical só permanece vertical em japonês e chinês, e o coreano é forçado à horizontal. A ferramenta oferece edição WYSIWYG detalhada e exporta para LabelPlus e Photoshop.
+
+O Saber-Translator \cite{sabertranslator}, distribuído sob a licença GPL-3.0, é uma aplicação de desktop com servidor Flask executado localmente e interface em Vue, com pacotes prontos apenas para Windows. Sua pipeline inclui detecção (DBNet, CTD, YOLO ou SaberYOLO), reconhecimento óptico (manga-ocr, 48px, PaddleOCR, PaddleOCR-VL, Baidu ou modelo de linguagem multimodal), extração de cor, geração automática de glossário por LLM, tradução e reparo da imagem por LaMa ou por preenchimento com cor sólida. A tradução processa a página em lote ou, no modo HQ, acompanhada da imagem. O foco é o par japonês--chinês, e o idioma de destino é praticamente fixo em chinês, sem seletor na interface. A ferramenta inclui ainda um leitor de biblioteca e uma extensão de navegador.
+
+O Comic Translate \cite{comictranslate}, distribuído sob a licença Apache-2.0, é uma aplicação de desktop em PySide6. A detecção usa o RT-DETR-v2, complementado por heurísticas sobre as linhas de texto e sua inclinação, e o reconhecimento óptico é escolhido conforme o sistema de escrita, com manga-ocr para o japonês, PP-OCR para os alfabetos latino e cirílico, o hangul e os caracteres han, e serviços remotos opcionais. A tradução é feita por LLMs, seja por GPT, Claude, Gemini e DeepSeek, acessados pelo serviço próprio do projeto, que exige login, seja por um serviço personalizado compatível com a API da OpenAI, que permite modelos locais. O inpainting na interface usa LaMa ou AOT, com o MI-GAN presente apenas no código. O idioma de origem é escolhido entre a detecção automática e 10 idiomas fixos, e o de destino entre 27. O código exige login em uma conta mesmo quando são usados modelos locais.
+
+A Tabela~\ref{tab:comparacao-ferramentas} compara as cinco ferramentas e o Auto Scanlator quanto à preservação dos atributos tipográficos definidos na Seção~\ref{sec:tipografia}, às escolhas de pipeline e de tradução e ao tratamento dado a cada tipo de texto apresentado na Seção~\ref{sec:quadrinhos}.
+
+
+\begin{table}[H]
+    \caption{Comparação entre as ferramentas de código aberto e o Auto Scanlator}
+    \label{tab:comparacao-ferramentas}
+    \centering
+    \footnotesize
+    \setlength{\tabcolsep}{3pt}
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{|p{2.9cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|}
+        \hline
+        \textbf{Critério} & \textbf{Manga Image Translator} & \textbf{Koharu} & \textbf{Ballons\hspace{0pt}Translator} & \textbf{Saber-Translator} & \textbf{Comic Translate} & \textbf{Auto Scanlator} \\
+        \hline
+        \hline
+        \multicolumn{7}{|l|}{\textbf{Atributos tipográficos}} \\
+        \hline
+        Cor do texto & Sim & Sim & Depende do OCR & Não por padrão & Sim & Sim \\
+        \hline
+        Negrito & Não & Não & Não & Não & Não & Sim \\
+        \hline
+        Borda & Não; força borda e largura fixa & Sim; cor e largura & Parcial; largura fixa & Não; contorno fixo & Não; contorno fixo & Sim \\
+        \hline
+        Ângulo & Sim; descarta <$3^\circ$ & Parcial; só fora do balão & Depende do detector & Sim; descarta <$3^\circ$ & Não no automático & Sim \\
+        \hline
+        Posição & Parcial; pode vazar & Sim & Sim & Sim & Sim & Sim \\
+        \hline
+        \hline
+        \multicolumn{7}{|l|}{\textbf{Pipeline e tradução}} \\
+        \hline
+        Remoção do texto original & LaMa (padrão), AOT, SD & LaMa, AOT, FLUX, RORem & cv2, PatchMatch, AOT, LaMa, Flux, LLM & LaMa ou cor sólida & LaMa, AOT (MI-GAN no código) & LaMa \\
+        \hline
+        Traduz com LLM & Sim; remoto e local & Sim; local e remoto & Sim; remoto e local & Sim; remoto e local & Sim; remoto e local & Sim; multimodal \\
+        \hline
+        Usa contexto visual & Só em dois motores & Sim; opcional & Opcional; desligado & Só no modo HQ & Opcional; desligado & Sim \\
+        \hline
+        Contexto da tradução & Página; anteriores no ChatGPT & Página & Página; histórico no LLM & Página; lotes no modo HQ & Página; contexto extra & --- \\
+        \hline
+        \hline
+        \multicolumn{7}{|l|}{\textbf{Tipos de texto}} \\
+        \hline
+        Diálogos & Traduz & Traduz & Traduz & Traduz & Traduz & Traduz \\
+        \hline
+        Comentários e narração & Traduz & Traduz & Traduz & Traduz & Traduz & Traduz \\
+        \hline
+        Texto escrito sobre objetos da cena & Não diferencia; trata como fala & Não diferencia; trata como fala & Não diferencia; trata como fala & Não diferencia; trata como fala & Não diferencia; trata como fala & Não altera (fora do escopo) \\
+        \hline
+        Onomatopeias & Preserva só nos LLMs (prompt + filtro) & Detecta e preserva & Filtra só no detector YSG & Não preserva & Traduz como texto comum & Não altera (fora do escopo) \\
+        \hline
+    \end{tabular}
+    \fonte{elaborada pelo autor.}
+\end{table}
+
+Entre os atributos tipográficos, a cor é preservada de forma geral por três das cinco ferramentas, já que no BallonsTranslator sua extração depende do módulo de reconhecimento óptico, funcionando no padrão (mit48px), mas ausente em 11 dos 13 módulos, e o Saber-Translator não a preserva na configuração padrão. Nenhuma preserva o negrito. A borda só é preservada em cor e largura pelo Koharu, e parcialmente pelo BallonsTranslator, que usa largura fixa, enquanto o Manga Image Translator força a adição de borda com largura fixa mesmo quando o texto original não a possui e as demais aplicam contorno fixo. O ângulo é preservado de forma geral apenas pelo Manga Image Translator e pelo Saber-Translator, que descartam inclinações menores que $3^\circ$. O Koharu o estima até $\pm45^\circ$, mas só o aplica ao texto fora do balão, renderizando o texto dentro dos balões sempre na horizontal, no BallonsTranslator sua preservação depende do detector escolhido e o Comic Translate não o preserva no modo automático. A posição é preservada por todas, exceto pelo Manga Image Translator, em que o texto traduzido pode ultrapassar os limites da região de texto.
+
+Nas etapas da pipeline, as ferramentas convergem. Todas oferecem o LaMa para a remoção do texto original e traduzem com LLM, local ou remoto. A unidade de tradução é sempre a página, com contexto adicional em alguns casos, como as páginas anteriores no motor ChatGPT do Manga Image Translator, o histórico de conversa com o LLM no BallonsTranslator e o processamento em lotes no modo HQ do Saber-Translator. O contexto visual, que melhorou a tradução japonês--inglês nos experimentos de \citeonline{lippmann-etal-2025-context}, é opcional ou restrito em todas. No Manga Image Translator, está disponível em apenas dois motores, no Saber-Translator, apenas no modo HQ, e no BallonsTranslator e no Comic Translate vem desligado por padrão. No Auto Scanlator, a tradução é feita por um modelo de linguagem multimodal que sempre recebe a imagem da página.
+
+Quanto aos tipos de texto, todas traduzem os diálogos, os comentários e a narração. Nenhuma delas, porém, diferencia o texto escrito sobre objetos da cena, apagando-o e inserindo a tradução por cima com o mesmo letreiramento aplicado à fala, enquanto o Auto Scanlator o mantém intacto (Seção~\ref{sec:escopo}). As onomatopeias só são preservadas na página pelo Koharu, que as detecta e exclui da remoção, e pelo Manga Image Translator quando usado com LLM, que instrui o modelo no prompt a não traduzi-las e descarta antes do inpainting as regiões cuja tradução permanece igual ao original. No BallonsTranslator, a filtragem ocorre apenas no detector YSG, que não é o padrão; no Saber-Translator, embora o prompt instrua o modelo a manter o texto original, a ferramenta apaga a arte da onomatopeia e a redesenha com a fonte padrão; e o Comic Translate as traduz como texto comum.
+
+As cinco ferramentas compartilham com o Auto Scanlator a estrutura da pipeline, a remoção do texto original com o LaMa e a tradução por LLM, o que as torna a referência adequada para a comparação que verifica a hipótese H2 (Capítulo~\ref{cap:avaliacao}). Nenhuma delas, porém, preserva os cinco atributos tipográficos. O negrito não é preservado por nenhuma, a borda só é preservada integralmente pelo Koharu, e o ângulo só é preservado dentro e fora dos balões por duas delas. O Auto Scanlator se propõe a preservar os cinco atributos, como formula a hipótese H1.
+
 \chapter{AUTO SCANLATOR}
 \label{cap:auto-scanlator}
 
