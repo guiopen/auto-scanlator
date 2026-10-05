@@ -385,6 +385,19 @@ As cinco ferramentas compartilham com o Auto Scanlator a estrutura da pipeline, 
 \section{DETECÇÃO E RECONHECIMENTO}
 \label{sec:as-deteccao}
 
+A primeira etapa da pipeline recebe a página e o código do idioma de origem e executa a detecção e o reconhecimento em uma única passagem, com o PaddleOCR 3.7 \cite{paddleocr}. Esse código seleciona o modelo de reconhecimento, que é instanciado uma vez e reaproveitado em todas as páginas da execução. O resultado é uma lista de linhas, cada uma com o texto reconhecido e o quadrilátero que a delimita na página.
+
+As linhas são então agrupadas em blocos, cada bloco correspondendo, em geral, a uma região de texto, como um balão ou um recordatório. O agrupamento une duas linhas quando seus retângulos, previamente expandidos, se intersectam, seus ângulos são próximos e a interseção cobre ao menos metade da altura ou da largura da menor delas. A expansão vertical é maior que a horizontal, o que aproxima as linhas empilhadas de um mesmo balão, e a proximidade entre os ângulos evita a união de linhas com inclinações distintas. A Figura~\ref{fig:deteccao} mostra as linhas detectadas e os blocos formados em uma página.
+
+\begin{figure}[H]
+    \caption{Linhas de texto detectadas e blocos formados em uma página}
+    \label{fig:deteccao}
+    \includegraphics[width=\textwidth]{imagens/deteccao.png}
+    \fonte{elaborada pelo autor.}
+\end{figure}
+
+Cada bloco reúne o texto reconhecido de suas linhas e os polígonos que as delimitam. O texto segue para a tradução, e os polígonos preservam a geometria do texto original, usada para delimitar as regiões removidas pelo inpainting (Seção~\ref{sec:as-inpainting}) e para restituir a posição e o ângulo no letreiramento (Seção~\ref{sec:as-letreiramento}).
+
 \section{INPAINTING}
 \label{sec:as-inpainting}
 
