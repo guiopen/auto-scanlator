@@ -417,6 +417,16 @@ Como a máscara cobre as linhas de texto e uma margem estreita ao redor delas, e
 \section{ANÁLISE DOS ATRIBUTOS TIPOGRÁFICOS}
 \label{sec:as-atributos}
 
+A análise dos atributos tipográficos identifica no texto original a cor, a borda e o negrito (Seção~\ref{sec:tipografia}), enquanto o ângulo e a posição vêm dos polígonos das linhas (Seção~\ref{sec:as-deteccao}). O negrito é identificado por análise de imagem, sem modelo treinado, comparando a espessura do traço de cada palavra com a das demais palavras da página.
+
+Os caracteres são isolados pela diferença entre cada recorte da página original e o recorte correspondente da página limpa produzida pelo inpainting (Seção~\ref{sec:as-inpainting}), e a limiarização dessa diferença produz a máscara dos caracteres. Como a referência é o fundo reconstruído, e não uma cor fixa, o método funciona para texto escuro sobre fundo claro e para o inverso. A máscara é então alinhada à horizontal, e as palavras são separadas pelos espaços em branco entre elas, cada uma recebendo o termo correspondente do texto reconhecido.
+
+A espessura de cada palavra é medida sobre o esqueleto dos traços, obtido pelo eixo medial. A transformada de distância dá a distância de cada pixel do texto até o fundo e, sobre o esqueleto, essa distância equivale à metade da largura do traço; a média dessas distâncias, normalizada pela altura dos caracteres do bloco, é a medida da palavra. A referência de peso normal é a mediana das medidas das palavras da página com mais de uma letra, e a palavra é classificada como negrito quando supera essa referência com margem, maior para palavras de uma ou duas letras. Palavras sem medida válida não são classificadas como negrito.
+
+As palavras em negrito são envolvidas pelas etiquetas \texttt{<b>} e \texttt{</b>} no texto do bloco. A tradução deve manter as etiquetas em torno das palavras correspondentes (Seção~\ref{sec:as-traducao}), e o letreiramento usa a variante em negrito da fonte nos trechos marcados (Seção~\ref{sec:as-letreiramento}).
+
+\attention{A cor e a borda do texto ainda não são identificadas; o negrito é o único atributo tratado nesta etapa, e o letreiramento desenha o texto com cor e contorno fixos.}
+
 \section{TRADUÇÃO E FILTRAGEM}
 \label{sec:as-traducao}
 
