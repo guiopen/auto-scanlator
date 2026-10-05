@@ -401,6 +401,19 @@ Cada bloco reúne o texto reconhecido de suas linhas e os polígonos que as deli
 \section{INPAINTING}
 \label{sec:as-inpainting}
 
+O inpainting é a etapa que remove o texto original da página, para que o texto traduzido seja inserido sobre uma página limpa. A máscara da remoção vem dos blocos detectados na etapa anterior, cujos polígonos de linha são preenchidos em uma máscara binária e dilatados para cobrir também as bordas dos caracteres. A página original e a máscara são então passadas ao LaMa \cite{suvorov2022lama}, modelo de inpainting baseado em aprendizado profundo (Seção~\ref{sec:inpainting}), que reconstrói o desenho sob o texto. A Figura~\ref{fig:inpainting} mostra uma página antes e depois da remoção.
+
+Como a máscara cobre as linhas de texto e uma margem estreita ao redor delas, e não o balão inteiro, a reconstrução fica restrita às áreas que continham texto. O resultado é a página sem o texto original, que serve de base ao letreiramento (Seção~\ref{sec:as-letreiramento}). A página original, por sua vez, é mantida para a análise dos atributos tipográficos e para a tradução (Seções~\ref{sec:as-atributos} e~\ref{sec:as-traducao}).
+
+\begin{figure}[H]
+    \caption{Remoção do texto original por inpainting}
+    \label{fig:inpainting}
+    \includegraphics[width=\textwidth]{imagens/inpainting.png}
+    \fonte{elaborada pelo autor.}
+\end{figure}
+
+\attention{A remoção alcança todos os blocos detectados, inclusive os que a tradução descarta, caso das onomatopeias e dos textos de cena, que a Seção~\ref{sec:escopo} prevê manter intactos. A correção prevista é manter a página limpa como referência da análise e, depois da filtragem, restaurar as áreas descartadas a partir da página original, compondo uma imagem mista.}
+
 \section{ANÁLISE DOS ATRIBUTOS TIPOGRÁFICOS}
 \label{sec:as-atributos}
 
