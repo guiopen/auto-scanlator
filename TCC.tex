@@ -430,6 +430,19 @@ As palavras em negrito são envolvidas pelas etiquetas \texttt{<b>} e \texttt{</
 \section{TRADUÇÃO E FILTRAGEM}
 \label{sec:as-traducao}
 
+A tradução e a filtragem dos blocos acontecem em uma única chamada a um modelo de linguagem multimodal, que recebe a imagem da página e a lista dos blocos detectados, cada um com seu texto, além dos idiomas de origem e de destino. A imagem fornece o contexto visual da página, que o modelo usa para desambiguar o texto e para julgar se um bloco deve ser traduzido, e a unidade de tradução é a página, com todos os blocos enviados juntos.
+
+O prompt define as regras de tradução e de filtragem (Seção~\ref{sec:escopo}). O modelo deve traduzir apenas os blocos de fala e narração e omitir os demais, como as onomatopeias e os textos escritos sobre objetos da cena. Cada bloco é traduzido como um texto único, e não linha a linha, de forma natural em vez de literal, mantendo os nomes próprios exatamente como no original e preservando os recursos estilísticos do autor, como palavras censuradas, travessões de hesitação ou interrupção, pontuação repetida, maiúsculas e minúsculas. O modelo também corrige erros do reconhecimento óptico, como palavras unidas, letras faltantes e linhas fragmentadas, conferindo o texto com a imagem, sem interferir em gírias, dialetos ou grafias intencionais. As etiquetas de negrito do texto original (Seção~\ref{sec:as-atributos}) devem ser mantidas em torno das palavras correspondentes da tradução.
+
+O modelo responde com uma lista em JSON em que cada item associa o índice de um bloco ao texto traduzido. Os blocos que o modelo omite são descartados, e a filtragem acontece por essa omissão, que indica que o bloco não deve ser traduzido. Os blocos restantes seguem com o texto traduzido e os polígonos das linhas para o letreiramento (Seção~\ref{sec:as-letreiramento}). A Figura~\ref{fig:traducao} mostra a tradução dos blocos e a filtragem em uma página.
+
+\begin{figure}[H]
+    \caption{Blocos traduzidos e blocos descartados em uma página}
+    \label{fig:traducao}
+    \includegraphics[width=\textwidth]{imagens/traducao.png}
+    \fonte{elaborada pelo autor.}
+\end{figure}
+
 \section{LETREIRAMENTO}
 \label{sec:as-letreiramento}
 
