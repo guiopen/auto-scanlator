@@ -446,6 +446,23 @@ O modelo responde com uma lista em JSON em que cada item associa o índice de um
 \section{LETREIRAMENTO}
 \label{sec:as-letreiramento}
 
+O letreiramento insere o texto traduzido na página limpa produzida pelo inpainting. Cada bloco que passa pela filtragem traz o texto traduzido e a geometria das linhas detectadas, de onde vêm a posição e o ângulo do bloco (Seções~\ref{sec:as-deteccao} e~\ref{sec:as-traducao}). As linhas do bloco são reunidas em uma única região pelo contorno convexo de seus polígonos, que serve de máscara para o desenho do texto.
+
+Como o texto traduzido tem extensão diferente do original, o tamanho da fonte é recalculado para preencher a região. O ajuste percorre a máscara de cima para baixo; em cada faixa horizontal, a largura disponível é o trecho da máscara naquela altura, com uma margem interna, e as palavras são encaixadas nela até a linha encher, o que quebra o texto em linhas conforme o formato da região. O maior tamanho em que todas as palavras cabem é o escolhido, e o texto é centralizado horizontalmente em cada linha e verticalmente na região.
+
+Nos blocos inclinados, a máscara é rotacionada para a horizontal, e o ajuste e o desenho acontecem nesse alinhamento. O resultado é rotacionado de volta pelo ângulo do bloco e posicionado no centro da região original, o que restitui a inclinação do texto. Inclinações desprezíveis são tratadas como nulas.
+
+As palavras marcadas com as etiquetas de negrito são desenhadas com a variante em negrito da fonte, e as demais com a fonte regular. A cor e a borda ainda não são restituídas, e o texto recebe preenchimento preto e contorno branco fixos (Seção~\ref{sec:as-atributos}). A Figura~\ref{fig:letreiramento} mostra uma página traduzida após o letreiramento.
+
+\begin{figure}[H]
+    \caption{Página traduzida após o letreiramento}
+    \label{fig:letreiramento}
+    \includegraphics[width=\textwidth]{imagens/letreiramento.png}
+    \fonte{elaborada pelo autor.}
+\end{figure}
+
+\attention{A identificação e a restituição da cor e da borda do texto ainda não foram implementadas; o letreiramento desenha o texto com preenchimento preto e contorno branco fixos.}
+
 \chapter{AVALIAÇÃO E RESULTADOS}
 \label{cap:avaliacao}
 
