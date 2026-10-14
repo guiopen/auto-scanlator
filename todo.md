@@ -1,7 +1,5 @@
 ### TEXTO:
-- Adicionar figuras ao texto
-- Aderessar "problema de pesquisa" e distinção de objetivos sugeridos pelo fileto
-- Rever o tamanho da fonte: assumimos que ele não importa para a estética, mas posição e espaço ocupado importam; falta fundamentar essa hierarquia
+- Justificar o proque usar visão computaiconal pra negrito e pq usar llms para onomatopeia
 
 ### CODIGO:
 Principal (afeta os resultados da pesquisa):
