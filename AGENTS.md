@@ -70,6 +70,8 @@ Agora vamos para algumas regras em relação ao trabalho:
 
 - NUNCA assuma alguma coisa sobre o projeto como verdade sem ter certeza, não faça deduções pra poupar trabalho, o usuário está sempre disponível pra tirar qualquer dúvida, é ele quem tem o domínio completo do presente e futuro do projeto, se não tá escrito em lugar nenhum e nem é óbvio, pergunte, não deduza
 
+- Nunca se refira a capítulos ou seções do TCC por número. Use sempre o nome deles, por exemplo "a seção Tipografia da Fundamentação Teórica" e não "a seção 2.3". O texto é editado direto no .tex e os números só aparecem no PDF compilado, então o autor não enxerga a numeração enquanto trabalha.
+
 ## Marcações de revisão no TCC.tex
 
 - `\attention{}` → texto vermelho
