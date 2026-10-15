@@ -117,7 +117,7 @@ Esse interesse institucional em automatizar a tradução, contudo, esbarra no fa
 
 Nas pesquisas e ferramentas que automatizam esse processo, porém, o cuidado visual restringiu-se à remoção do texto original, impulsionada pelo avanço dos modelos de inpainting \cite{quan2024deeplearningbasedimagevideo}. O letreiramento automático recebe pouca atenção na literatura e nas ferramentas de código aberto, que inserem o texto traduzido com peso tipográfico uniforme, perdendo o negrito do original, e frequentemente falham em distinguir os tipos de texto da página, apagando e sobrescrevendo elementos gráficos do cenário como se fossem falas comuns (Seção~\ref{sec:ferramentas}).
 
-Diante desse cenário, este trabalho propõe o desenvolvimento do Auto Scanlator, um sistema de tradução automatizada de histórias em quadrinhos que preserva o negrito do texto de fala e narração no letreiramento e mantém intactos na página os textos escritos sobre objetos da cena e as onomatopeias. O sistema é construído exclusivamente com tecnologias livres e executa todas as etapas localmente em hardware convencional \attention{explicar em algum lugar oq é esse hardware convencional e citar o trecho}, incluindo o modelo de linguagem multimodal empregado na tradução e na filtragem de blocos. A Figura~\ref{fig:pipeline} apresenta uma visão geral da pipeline proposta, detalhada no Capítulo~\ref{cap:auto-scanlator}.
+Diante desse cenário, este trabalho propõe o desenvolvimento do Auto Scanlator, um sistema de tradução automatizada de histórias em quadrinhos que preserva o negrito do texto de fala e narração no letreiramento e mantém intactos na página os textos escritos sobre objetos da cena e as onomatopeias. O sistema é construído exclusivamente com tecnologias livres e executa todas as etapas localmente em hardware convencional (Seção~\ref{sec:escopo}), incluindo o modelo de linguagem multimodal empregado na tradução e na filtragem de blocos. A Figura~\ref{fig:pipeline} apresenta uma visão geral da pipeline proposta, detalhada no Capítulo~\ref{cap:auto-scanlator}.
     
 \section{PROBLEMA DE PESQUISA}
 \label{sec:problema}
@@ -154,7 +154,7 @@ O objetivo geral deste trabalho é desenvolver e avaliar o Auto Scanlator, uma p
 \section{ESCOPO E DELIMITAÇÕES}
 \label{sec:escopo}
 
-O sistema recebe as imagens das páginas de um quadrinho e devolve as mesmas páginas com o texto de fala e narração substituído pela tradução e com as onomatopeias e os textos escritos sobre objetos da cena intactos, executando localmente a pipeline detalhada no Capítulo~\ref{cap:auto-scanlator}. A interação ocorre por linha de comando. O desenvolvimento de interface gráfica não integra o escopo, assim como a otimização de desempenho computacional, de modo que o tempo de processamento das páginas não constitui objeto de avaliação.
+O sistema recebe as imagens das páginas de um quadrinho e devolve as mesmas páginas com o texto de fala e narração substituído pela tradução e com as onomatopeias e os textos escritos sobre objetos da cena intactos, executando localmente a pipeline detalhada no Capítulo~\ref{cap:auto-scanlator}. Neste trabalho, a execução em hardware convencional tem como referência um notebook com sistema operacional Linux, processador Intel Core i5 de 11ª geração com quatro núcleos, 12~GB de memória RAM DDR4 e sem placa de vídeo dedicada. A interação ocorre por linha de comando. O desenvolvimento de interface gráfica não integra o escopo, assim como a otimização de desempenho computacional, de modo que o tempo de processamento das páginas não constitui objeto de avaliação.
 
 Quanto aos quatro tipos de texto apresentados na Seção~\ref{sec:quadrinhos}, o sistema traduz os diálogos e os comentários e narração, e detecta as onomatopeias e os textos escritos sobre objetos da cena com o modelo de linguagem multimodal para mantê-los intactos na página (Seções~\ref{sec:letreiramento} e~\ref{sec:traducao-imagem}). A tradução e o letreiramento desses dois últimos tipos ficam como sugestão para trabalhos futuros. A preservação da cor de preenchimento e da borda do texto original também fica fora do escopo para concentrar o desenvolvimento nas hipóteses propostas, ainda não atendidas pelas ferramentas de código aberto (Seção~\ref{sec:ferramentas}). No sistema desenvolvido, o letreiramento desenha o texto em preto com contorno branco ou em branco com contorno preto, conforme o contraste com o fundo da região.
 
@@ -361,6 +361,8 @@ A análise comparativa evidencia que, embora as ferramentas de código aberto co
 \attention{REVER ESTA FIGURA: conferir se o diagrama ainda destaca cor, borda, ângulo e posição e atualizar para as duas frentes, a visão computacional no negrito e o modelo de linguagem multimodal na detecção dos tipos de texto.}
 
 \attention{INSERIR UMA FIGURA POR ETAPA, COM EXEMPLO REAL}
+
+\propGuilheme{falar sobre os modelos e tecnologias usadas em um paragrafo introdutorio para coisas ocmo python, e nas etapas especificas para ocisas como gemma e paddle}
 
 \section{DETECÇÃO E RECONHECIMENTO}
 \label{sec:as-deteccao}
