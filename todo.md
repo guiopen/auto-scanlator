@@ -1,4 +1,5 @@
 ### TEXTO:
+- RE-VERIFICAR TODAS AS FONTES E CITAÇÕES
 - Justificar o proque usar visão computaiconal pra negrito e pq usar llms para onomatopeia
 
 ### CODIGO:
