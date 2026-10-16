@@ -76,7 +76,7 @@ def translate_page(
     grouped_blocks: list[dict],
     source_lang: str,
     target_lang: str,
-) -> list[dict]:
+) -> tuple[str, list[dict]]:
     prompt_lines = "\n".join(
         f"Block {i}: {block.get('marked_text', block['original_text'])}"
         for i, block in enumerate(grouped_blocks)
@@ -104,4 +104,4 @@ def translate_page(
     for i, block in enumerate(grouped_blocks):
         if i in indexed:
             result.append({**block, "translated_text": indexed[i]})
-    return result
+    return content, result

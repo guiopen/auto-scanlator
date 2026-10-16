@@ -3,6 +3,7 @@
 - Justificar o proque usar visão computaiconal pra negrito e pq usar llms para onomatopeia
 
 ### CODIGO:
+- estreitar condições de agrupamento (testar ocm iamgem 24)
 Principal (afeta os resultados da pesquisa):
 - Preservar negrito (feito), caixa alta (feito), cor, angulo (feito), posição (feito) e bordas do texto
 - Ter um balanço entre legibilidade (tamanho de fonte) e posição/espaço do texto.

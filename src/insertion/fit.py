@@ -44,8 +44,31 @@ def _horizontal_span(mask: np.ndarray, y: int, height: int) -> tuple[int, int] |
     return int(cols[0]), int(cols[-1])
 
 
+def _split_words(text: str) -> list[tuple[str, bool]]:
+    tokens: list[tuple[str, bool]] = []
+    bold = False
+    for raw_word in text.split():
+        parts = raw_word.split("-")
+        for idx, part in enumerate(parts):
+            token = part + "-" if idx < len(parts) - 1 else part
+            if not token:
+                continue
+            was_bold = bold
+            for seg in _TAG_RE.split(token):
+                if seg == "<b>":
+                    bold = True
+                elif seg == "</b>":
+                    bold = False
+            if was_bold and not token.startswith("<b>"):
+                token = "<b>" + token
+            if bold and not token.endswith("</b>"):
+                token = token + "</b>"
+            tokens.append((token, idx == len(parts) - 1))
+    return tokens
+
+
 def _greedy_wrap(
-    words: list[str],
+    words: list[tuple[str, bool]],
     font: ImageFont.FreeTypeFont,
     bold_font: ImageFont.FreeTypeFont | None,
     mask: np.ndarray,
@@ -60,6 +83,9 @@ def _greedy_wrap(
     i = 0
 
     while i < len(words):
+        if y + font_height > mask_bottom:
+            return None
+
         span = _horizontal_span(mask, y, font_height)
         if span is None:
             return None
@@ -70,31 +96,28 @@ def _greedy_wrap(
         right = span[1] - margin_h
         available = right - left
 
-        if available <= 0:
-            return None
-
-        test_line = words[i]
+        test_line, prev_space = words[i]
         test_width = _marked_width(test_line, font, bold_font)
-        if test_width > available:
-            return None
+        if available <= 0 or test_width > available:
+            y += line_step
+            continue
 
         j = i + 1
         while j < len(words):
-            candidate = test_line + " " + words[j]
+            word_text, space_after = words[j]
+            sep = " " if prev_space else ""
+            candidate = test_line + sep + word_text
             candidate_width = _marked_width(candidate, font, bold_font)
             if candidate_width <= available:
                 test_line = candidate
                 test_width = candidate_width
+                prev_space = space_after
                 j += 1
             else:
                 break
 
         lines.append((test_line, y, left, right, test_width))
         y += line_step
-
-        if y + font_height > mask_bottom and j < len(words):
-            return None
-
         i = j
 
     return lines
@@ -118,7 +141,7 @@ def fit_text(
     if max_vertical <= 0:
         return 1, []
 
-    words = text.split()
+    words = _split_words(text)
     if not words:
         return 1, []
 
@@ -166,9 +189,12 @@ def fit_text(
     line_step = int(font_height * config.line_spacing)
 
     if best_lines:
-        total_height = font_height + (len(best_lines) - 1) * line_step
+        first_y = best_lines[0][1]
+        last_y = best_lines[-1][1]
+        total_height = (last_y - first_y) + font_height
         available = mask_bottom - mask_top
-        offset = (available - total_height) // 2 - bbox[1]
+        target_top = mask_top + (available - total_height) // 2
+        offset = target_top - first_y - bbox[1]
 
         out = []
         for line_text, y, left, right, width in best_lines:
@@ -179,7 +205,7 @@ def fit_text(
 
     out = []
     y = mask_top
-    for word in words:
+    for word, _ in words:
         if y + font_height > mask_bottom:
             break
         span = _horizontal_span(mask, y, font_height)

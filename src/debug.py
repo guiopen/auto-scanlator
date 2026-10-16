@@ -54,7 +54,8 @@ def debug_bold(
     _show_debug("Bold", overlay, height)
 
 
-def debug_translation(blocks: list[dict]):
+def debug_translation(raw_response: str, blocks: list[dict]):
+    print(f"Raw LLM response:\n{raw_response}")
     text = json.dumps(blocks, ensure_ascii=False, indent=2)
     text = re.sub(
         r"\[\n( *-?\d+,\n)* *-?\d+\n *\]",

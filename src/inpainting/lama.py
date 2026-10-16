@@ -7,7 +7,20 @@ class PageInpainter:
         import torch
         from simple_lama_inpainting import SimpleLama  # type: ignore[import-untyped]
 
-        self._lama = SimpleLama(device=torch.device(device))
+        target_device = torch.device(device)
+        # simple-lama-inpainting calls torch.jit.load without map_location, which
+        # restores the model on the CUDA device it was saved from
+        _jit_load = torch.jit.load
+
+        def _load(path, *args, **kwargs):
+            kwargs.setdefault("map_location", target_device)
+            return _jit_load(path, *args, **kwargs)
+
+        torch.jit.load = _load
+        try:
+            self._lama = SimpleLama(device=target_device)
+        finally:
+            torch.jit.load = _jit_load
 
     def inpaint(self, img: np.ndarray, blocks: list[dict]) -> np.ndarray | None:
         mask = np.zeros(img.shape[:2], dtype=np.uint8)

@@ -1,5 +1,5 @@
 import json
-from dataclasses import dataclass, field, fields
+from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 
 _CONFIG_PATH = Path("config.json")
@@ -49,8 +49,15 @@ def load_config() -> Config:
     try:
         data = json.loads(_CONFIG_PATH.read_text())
     except FileNotFoundError:
-        _config = Config()
-        return _config
+        data = {}
+
+    changed = False
+    for name, value in asdict(Config()).items():
+        if name not in data:
+            data[name] = value
+            changed = True
+    if changed:
+        _CONFIG_PATH.write_text(json.dumps(data, indent=2))
 
     config = Config()
     for f in fields(Config):

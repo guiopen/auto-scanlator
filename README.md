@@ -20,6 +20,14 @@ uv sync
 
 3. Certifique-se de ter um LLM rodando em `http://127.0.0.1:8080`.
 
+4. Coloque uma fonte TrueType na pasta `fonts/` na raiz do projeto:
+- `fonts/font.ttf` (obrigatória)
+- `fonts/font-bold.ttf` (opcional; sem ela, o negrito é renderizado com a fonte regular)
+
+A fonte precisa conter os caracteres do idioma de destino. Fontes gratuitas podem ser baixadas do [Google Fonts](https://fonts.google.com/) e renomeadas para `font.ttf` e `font-bold.ttf`. A pasta `fonts/` é ignorada pelo git, então precisa ser criada manualmente.
+
+Recomendo o uso da fonte Komika para a maioria dos quadrinhos: https://www.fontsquirrel.com/fonts/Komika-Hand
+
 ## Uso
 
 ```bash

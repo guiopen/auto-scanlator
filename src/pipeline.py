@@ -48,9 +48,11 @@ def _run_pipeline(
         if config.debug_bold:
             debug_bold(img, bold_words, baseline)
 
-    blocks = translate_page(img, grouped_blocks, llm_source_lang, target_lang)
+    raw_response, blocks = translate_page(
+        img, grouped_blocks, llm_source_lang, target_lang
+    )
     if config.debug_translation:
-        debug_translation(blocks)
+        debug_translation(raw_response, blocks)
 
     merged_blocks = merge_detections(img, blocks)
     if config.debug_merge:
