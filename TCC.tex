@@ -147,7 +147,7 @@ O objetivo geral deste trabalho é desenvolver e avaliar o Auto Scanlator, uma p
     \item Desenvolver uma pipeline local que encadeie a detecção e o reconhecimento óptico do texto, a remoção do texto original por inpainting, a identificação do negrito, a tradução e filtragem de blocos e o letreiramento da página traduzida;
     \item Implementar um algoritimo de visão computacional para detectar as palavras em negrito no texto original e restituir esse destaque nas palavras correspondentes durante o letreiramento da tradução;
     \item Empregar um modelo de linguagem multimodal para realizar a tradução contextualizada das falas e da narração e detectar onomatopeias e textos escritos sobre objetos da cena, filtrando-os para que permaneçam intactos na imagem;
-    \item Definir e aplicar um protocolo de avaliação que mensure o desempenho na detecção e preservação do negrito e na detecção dos tipos de texto, permitindo verificar as hipóteses formuladas na Seção~\ref{sec:problema};
+    \item Construir um conjunto de dados anotado como padrão-ouro e aplicar sobre ele um protocolo de avaliação que mensure separadamente a detecção do negrito por visão computacional, a preservação do negrito na tradução, a detecção de onomatopeias e a detecção de textos escritos sobre objetos da cena, permitindo verificar as hipóteses formuladas na Seção~\ref{sec:problema};
     \item Disponibilizar a ferramenta resultante em código aberto, operável por linha de comando e acompanhada de documentação.
 \end{enumerate}
 
@@ -433,6 +433,111 @@ As palavras marcadas com as etiquetas \texttt{<b>} e \texttt{</b>} são desenhad
 
 \chapter{AVALIAÇÃO E RESULTADOS}
 \label{cap:avaliacao}
+
+Este capítulo descreve a construção do conjunto de dados padrão-ouro, o protocolo experimental e os resultados obtidos para verificar as hipóteses H1 e H2 formuladas na Seção~\ref{sec:problema}. A avaliação divide-se em quatro tarefas: a detecção do negrito no texto original por visão computacional e a preservação desse negrito nas palavras traduzidas pelo modelo de linguagem multimodal, referentes à hipótese H1, e a detecção de onomatopeias e a detecção de textos escritos sobre objetos da cena pelo modelo de linguagem multimodal, referentes à hipótese H2.
+
+\section{CONJUNTO DE DADOS PADRÃO-OURO}
+\label{sec:padrao-ouro}
+
+Para estabelecer uma referência confiável na avaliação do sistema, foi construído um conjunto de dados padrão-ouro a partir de páginas das histórias em quadrinhos brasileiras \textit{Homem-Grilo} e \textit{Nova Hélade}, ambas de autoria de Cadu Simões e distribuídas sob licença Creative Commons, traduzidas do português para o inglês. A seleção descartou páginas que contivessem apenas texto de fala e narração sem palavras em negrito, mantendo exclusivamente páginas que apresentassem ao menos um dos três elementos investigados (palavras em negrito, onomatopeias ou textos escritos sobre objetos da cena). Ao todo, o conjunto reúne \attention{N} páginas, sendo \attention{N} de \textit{Homem-Grilo} e \attention{N} de \textit{Nova Hélade}.
+
+Para isolar o desempenho de cada funcionalidade e evitar que falhas ou ausências de etapas anteriores distorçam os resultados, o padrão-ouro é organizado em subconjuntos específicos por tarefa. Uma página selecionada apenas pela presença de palavras em negrito não integra os subconjuntos de avaliação de onomatopeias ou de textos escritos sobre objetos da cena, assim como páginas que contêm apenas onomatopeias ou textos escritos sobre objetos da cena não entram na avaliação do negrito. Além disso, a anotação de cada tarefa restringe-se aos elementos efetivamente capturados pela etapa precedente da pipeline.
+
+Na anotação voltada à detecção do negrito, foram registradas todas as palavras dos blocos de fala e narração corretamente reconhecidas pelo PaddleOCR nas páginas com ocorrência de negrito, identificando a página, o bloco, a linha e a classificação binária de cada palavra como em negrito ou regular segundo a arte original. Palavras com erro de reconhecimento óptico foram excluídas para não penalizar o detector de visão computacional por falhas do OCR. Já o subconjunto destinado a avaliar a preservação do negrito na tradução restringe-se às palavras em que o detector de visão computacional acertou a classificação na etapa anterior, isolando a capacidade do modelo de linguagem multimodal de transferir as etiquetas \texttt{<b>} e \texttt{</b>} para os termos equivalentes em inglês.
+
+Na anotação voltada às onomatopeias e aos textos escritos sobre objetos da cena, foram registrados os polígonos de localização e a categoria real de cada bloco detectado pelo PaddleOCR nas respectivas páginas, independentemente do conteúdo textual transcrito pelo reconhecedor. Onomatopeias e textos escritos sobre objetos da cena presentes no desenho, mas que não foram detectados pelo PaddleOCR na primeira etapa da pipeline (Seção~\ref{sec:as-deteccao}), foram excluídos da anotação. Como a filtragem ocorre por omissão do bloco na resposta do modelo de linguagem multimodal (Seção~\ref{sec:as-traducao}), um elemento que sequer chegou a ser detectado pelo OCR jamais seria enviado ao modelo e acabaria contabilizado como um falso acerto de preservação, inflando artificialmente o desempenho da filtragem.
+
+\section{PROTOCOLO DE AVALIAÇÃO}
+\label{sec:protocolo-avaliacao}
+
+Cada uma das quatro tarefas é avaliada por meio de uma matriz de confusão própria, contabilizando os verdadeiros positivos (VP), falsos positivos (FP), falsos negativos (FN) e verdadeiros negativos (VN) sobre o respectivo subconjunto do padrão-ouro. As três tarefas de detecção são verificadas de forma programática, enquanto a preservação do negrito na tradução é verificada por avaliação humana.
+
+Na detecção do negrito por visão computacional, a unidade de avaliação é a palavra reconhecida nos blocos de fala e narração. Comparando a saída do detector (Seção~\ref{sec:as-atributos}) com a anotação do padrão-ouro, contabiliza-se como verdadeiro positivo a palavra em negrito classificada como negrito; falso positivo, a palavra regular classificada como negrito; falso negativo, a palavra em negrito classificada como regular; e verdadeiro negativo, a palavra regular classificada como regular.
+
+Na preservação do negrito pelo modelo de linguagem multimodal, avaliada sobre o subconjunto de blocos em que o negrito foi corretamente detectado na origem, a correspondência semântica entre as palavras em português e sua tradução em inglês impede a verificação puramente programática, pois uma palavra destacada pode ser traduzida por mais de um termo ou mudar de posição na frase. Por essa razão, a verificação é conduzida por \attention{definir quantidade e perfil dos avaliadores humanos}, que recebem os recortes do quadro original em português e do quadro traduzido para o inglês e julgam, de forma binária para cada palavra do subconjunto, se a ênfase original foi corretamente preservada no texto traduzido. Na matriz de confusão resultante, o verdadeiro positivo corresponde à palavra originalmente em negrito cujo equivalente traduzido recebeu negrito; o falso positivo, à palavra regular cujo equivalente traduzido recebeu negrito indevidamente; o falso negativo, à palavra originalmente em negrito cujo equivalente traduzido perdeu o destaque; e o verdadeiro negativo, à palavra regular cujo equivalente traduzido permaneceu regular.
+
+Na detecção de onomatopeias pelo modelo de linguagem multimodal, a unidade de avaliação é o bloco de texto detectado pelo PaddleOCR nas páginas que contêm onomatopeias, confrontando as onomatopeias com os blocos de fala e narração dessas mesmas páginas. Como o modelo sinaliza a detecção de uma onomatopeia omitindo o bloco de sua resposta em JSON (Seção~\ref{sec:as-traducao}), contabiliza-se como verdadeiro positivo o bloco de onomatopeia omitido pelo modelo; falso positivo, o bloco de fala ou narração indevidamente omitido pelo modelo; falso negativo, o bloco de onomatopeia traduzido como se fosse fala; e verdadeiro negativo, o bloco de fala ou narração devidamente traduzido.
+
+Por fim, a detecção de textos escritos sobre objetos da cena segue o mesmo procedimento programático sobre os blocos detectados pelo PaddleOCR nas páginas que contêm esse tipo de texto, confrontando-os com os blocos de fala e narração dessas páginas. Contabiliza-se como verdadeiro positivo o bloco de texto escrito sobre objeto da cena omitido pelo modelo; falso positivo, o bloco de fala ou narração indevidamente omitido; falso negativo, o bloco de texto escrito sobre objeto da cena traduzido como fala; e verdadeiro negativo, o bloco de fala ou narração devidamente traduzido.
+
+\section{RESULTADOS}
+\label{sec:resultados}
+
+\attention{PREENCHER APÓS OS EXPERIMENTOS: parágrafo apresentando e discutindo os resultados da detecção e da preservação do negrito (H1).}
+
+\begin{table}[H]
+    \caption{Matriz de confusão da detecção do negrito por visão computacional}
+    \label{tab:matriz-deteccao-negrito}
+    \centering
+    \footnotesize
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{|l|c|c|}
+        \hline
+        \textbf{Padrão-ouro \textbackslash\ Predição} & \textbf{Detectado como negrito} & \textbf{Detectado como regular} \\
+        \hline
+        \textbf{Palavra em negrito} & \attention{VP} & \attention{FN} \\
+        \hline
+        \textbf{Palavra regular} & \attention{FP} & \attention{VN} \\
+        \hline
+    \end{tabular}
+    \fonte{elaborada pelo autor.}
+\end{table}
+
+\begin{table}[H]
+    \caption{Matriz de confusão da preservação do negrito na tradução pelo MLLM}
+    \label{tab:matriz-preservacao-negrito}
+    \centering
+    \footnotesize
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{|l|c|c|}
+        \hline
+        \textbf{Padrão-ouro \textbackslash\ Tradução} & \textbf{Traduzido em negrito} & \textbf{Traduzido como regular} \\
+        \hline
+        \textbf{Palavra em negrito} & \attention{VP} & \attention{FN} \\
+        \hline
+        \textbf{Palavra regular} & \attention{FP} & \attention{VN} \\
+        \hline
+    \end{tabular}
+    \fonte{elaborada pelo autor.}
+\end{table}
+
+\attention{PREENCHER APÓS OS EXPERIMENTOS: parágrafo apresentando e discutindo os resultados da detecção de onomatopeias e de textos escritos sobre objetos da cena (H2).}
+
+\begin{table}[H]
+    \caption{Matriz de confusão da detecção de onomatopeias pelo MLLM}
+    \label{tab:matriz-onomatopeias}
+    \centering
+    \footnotesize
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{|l|c|c|}
+        \hline
+        \textbf{Padrão-ouro \textbackslash\ Predição} & \textbf{Omitido (preservado)} & \textbf{Traduzido} \\
+        \hline
+        \textbf{Onomatopeia} & \attention{VP} & \attention{FN} \\
+        \hline
+        \textbf{Fala ou narração} & \attention{FP} & \attention{VN} \\
+        \hline
+    \end{tabular}
+    \fonte{elaborada pelo autor.}
+\end{table}
+
+\begin{table}[H]
+    \caption{Matriz de confusão da detecção de textos escritos sobre objetos da cena pelo MLLM}
+    \label{tab:matriz-texto-cena}
+    \centering
+    \footnotesize
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{|l|c|c|}
+        \hline
+        \textbf{Padrão-ouro \textbackslash\ Predição} & \textbf{Omitido (preservado)} & \textbf{Traduzido} \\
+        \hline
+        \textbf{Texto escrito sobre objeto da cena} & \attention{VP} & \attention{FN} \\
+        \hline
+        \textbf{Fala ou narração} & \attention{FP} & \attention{VN} \\
+        \hline
+    \end{tabular}
+    \fonte{elaborada pelo autor.}
+\end{table}
 
 \chapter{CONCLUSÃO}
 
