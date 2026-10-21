@@ -1,0 +1,66 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="pipeline" name="Pipeline">
+    <mxGraphModel dx="2200" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2290" pageHeight="520" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="page-original" value="Página&lt;br&gt;Original" style="shape=document;boundedLbl=1;whiteSpace=wrap;html=1;fillColor=#f4f4f4;strokeColor=#666666;strokeWidth=2;fontSize=32;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="35" y="123" width="170" height="185" as="geometry" />
+        </mxCell>
+
+        <mxCell id="etapa-1" value="&lt;div&gt;&lt;b&gt;&lt;span style=&quot;font-size:32px;&quot;&gt;Detecção e&lt;br&gt;Reconhecimento&lt;/span&gt;&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size:32px; color:#4d4d4d; margin-top:10px;&quot;&gt;Localiza e reconhece o texto e agrupa as linhas em blocos&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#cde1f8;strokeColor=#6C8EBF;strokeWidth=3;fontColor=#1a1a1a;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="235" y="45" width="340" height="340" as="geometry" />
+        </mxCell>
+
+        <mxCell id="etapa-2" value="&lt;div&gt;&lt;b&gt;&lt;span style=&quot;font-size:32px;&quot;&gt;Inpainting&lt;/span&gt;&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size:32px; color:#4d4d4d; margin-top:10px;&quot;&gt;Remove o texto original e reconstrói o fundo da página&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#c9e6ce;strokeColor=#82B366;strokeWidth=3;fontColor=#1a1a1a;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="605" y="45" width="340" height="340" as="geometry" />
+        </mxCell>
+
+        <mxCell id="etapa-3" value="&lt;div&gt;&lt;b&gt;&lt;span style=&quot;font-size:32px;&quot;&gt;Detecção do&lt;br&gt;Negrito&lt;/span&gt;&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size:32px; color:#4d4d4d; margin-top:10px;&quot;&gt;Identifica por visão computacional as palavras em negrito no texto original&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#fae0a8;strokeColor=#D6B656;strokeWidth=3;fontColor=#1a1a1a;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="975" y="45" width="340" height="340" as="geometry" />
+        </mxCell>
+
+        <mxCell id="etapa-4" value="&lt;div&gt;&lt;b&gt;&lt;span style=&quot;font-size:32px;&quot;&gt;Tradução e&lt;br&gt;Filtragem&lt;/span&gt;&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size:32px; color:#4d4d4d; margin-top:10px;&quot;&gt;Traduz as falas e a narração e descarta onomatopeias e textos escritos sobre objetos da cena&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#e7d5fa;strokeColor=#9673A6;strokeWidth=3;fontColor=#1a1a1a;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="1345" y="45" width="340" height="340" as="geometry" />
+        </mxCell>
+
+        <mxCell id="etapa-5" value="&lt;div&gt;&lt;b&gt;&lt;span style=&quot;font-size:32px;&quot;&gt;Letreiramento&lt;/span&gt;&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;font-size:32px; color:#4d4d4d; margin-top:10px;&quot;&gt;Insere o texto traduzido na página limpa&lt;/div&gt;" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#caf2ed;strokeColor=#0E8088;strokeWidth=3;fontColor=#1a1a1a;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="1715" y="45" width="340" height="340" as="geometry" />
+        </mxCell>
+
+        <mxCell id="page-traduzida" value="Página&lt;br&gt;Traduzida" style="shape=document;boundedLbl=1;whiteSpace=wrap;html=1;fillColor=#f4f4f4;strokeColor=#666666;strokeWidth=2;fontSize=32;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="2085" y="123" width="170" height="185" as="geometry" />
+        </mxCell>
+
+        <mxCell id="seta-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#000000;" edge="1" parent="1" source="page-original" target="etapa-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="seta-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#000000;" edge="1" parent="1" source="etapa-1" target="etapa-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="seta-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#000000;" edge="1" parent="1" source="etapa-2" target="etapa-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="seta-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#000000;" edge="1" parent="1" source="etapa-3" target="etapa-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="seta-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#000000;" edge="1" parent="1" source="etapa-4" target="etapa-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="seta-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#000000;" edge="1" parent="1" source="etapa-5" target="page-traduzida">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pagina-limpa" value="Página Limpa" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;dashPattern=8 8;endArrow=block;endFill=1;strokeWidth=3;strokeColor=#000000;fontSize=32;fontStyle=1;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="etapa-2" target="etapa-5">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="775" y="465" />
+              <mxPoint x="1885" y="465" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

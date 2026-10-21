@@ -289,7 +289,7 @@ O Saber-Translator \cite{sabertranslator}, distribuído sob a licença GPL-3.0, 
 
 O Comic Translate \cite{comictranslate}, distribuído sob a licença Apache-2.0, é uma aplicação de desktop em PySide6. A detecção usa o RT-DETR-v2, complementado por heurísticas sobre as linhas de texto e sua inclinação, e o reconhecimento óptico é escolhido conforme o sistema de escrita, com manga-ocr para o japonês, PP-OCR para os alfabetos latino e cirílico, o hangul e os caracteres han, e serviços remotos opcionais. A tradução é feita por LLMs, seja por GPT, Claude, Gemini e DeepSeek, acessados pelo serviço próprio do projeto, que exige login, seja por um serviço personalizado compatível com a API da OpenAI, que permite modelos locais. O inpainting na interface usa LaMa ou AOT, com o MI-GAN presente apenas no código. O idioma de origem é escolhido entre a detecção automática e 10 idiomas fixos, e o de destino entre 27. O código exige login em uma conta mesmo quando são usados modelos locais.
 
-A Tabela~\ref{tab:comparacao-ferramentas} compara as cinco ferramentas e o Auto Scanlator quanto à preservação do negrito, às escolhas de pipeline e de tradução e ao tratamento dado a cada tipo de texto apresentado na Seção~\ref{sec:quadrinhos}.
+A Tabela~\ref{tab:comparacao-ferramentas} compara as cinco ferramentas e o Auto Scanlator quanto à preservação do negrito e às escolhas de pipeline e de tradução. O tratamento dado às onomatopeias e aos textos escritos sobre objetos da cena é detalhado nas Tabelas~\ref{tab:comparacao-onomatopeias} e~\ref{tab:comparacao-texto-cena}.
 
 
 \begin{table}[H]
@@ -319,24 +319,77 @@ A Tabela~\ref{tab:comparacao-ferramentas} compara as cinco ferramentas e o Auto 
         \hline
         Contexto da tradução & Página; anteriores no ChatGPT & Página & Página; histórico no LLM & Página; lotes no modo HQ & Página; contexto extra & Página \\
         \hline
-        \hline
-        \multicolumn{7}{|l|}{\textbf{Tipos de texto}} \\
-        \hline
-        Diálogos & Traduz & Traduz & Traduz & Traduz & Traduz & Traduz \\
-        \hline
-        Comentários e narração & Traduz & Traduz & Traduz & Traduz & Traduz & Traduz \\
-        \hline
-        Texto escrito sobre objetos da cena & Não diferencia; trata como fala & Não diferencia; trata como fala & Não diferencia; trata como fala & Não diferencia; trata como fala & Não diferencia; trata como fala & Detecta e preserva \\
-        \hline
-        Onomatopeias & Preserva só nos LLMs (prompt + filtro) & Detecta e preserva & Filtra só no detector YSG & Não preserva & Traduz como texto comum & Detecta e preserva \\
-        \hline
     \end{tabular}
     \fonte{elaborada pelo autor.}
 \end{table}
 
 Na etapa de letreiramento, nenhuma das cinco ferramentas analisadas detecta ou preserva automaticamente o negrito presente nas palavras do texto original, renderizando todo o bloco traduzido com peso tipográfico uniforme. Nas demais escolhas de arquitetura, as ferramentas convergem ao adotar o modelo LaMa para o inpainting e oferecer suporte a LLMs locais ou remotos na tradução. A unidade padrão de tradução é a página, com opções pontuais de contexto adicional, como páginas anteriores no motor ChatGPT do Manga Image Translator, histórico de conversa no BallonsTranslator e processamento em lotes no modo HQ do Saber-Translator. O envio da imagem da página como contexto visual, que elevou a qualidade da tradução nos experimentos de \citeonline{lippmann-etal-2025-context}, é opcional ou restrito nas cinco ferramentas, vindo desativado por padrão no BallonsTranslator e no Comic Translate e restrito a motores ou modos específicos no Manga Image Translator e no Saber-Translator. No Auto Scanlator, a tradução é sempre conduzida por um modelo de linguagem multimodal que recebe a imagem completa da página junto com os blocos de texto.
 
-Quanto ao tratamento dos tipos de texto, todas as ferramentas traduzem os diálogos, os comentários e a narração, mas nenhuma delas distingue o texto escrito sobre objetos da cena, apagando o desenho de placas e fachadas com inpainting e sobrepondo a tradução com a fonte padrão de diálogo. Já as onomatopeias só permanecem intactas no Koharu, cujo detector de layout possui uma classe específica para excluí-las da remoção, e no Manga Image Translator quando configurado com LLM, que instrui o modelo via prompt a devolver o texto inalterado e descarta antes do inpainting os blocos cuja tradução seja idêntica ao original. No BallonsTranslator, essa filtragem depende do detector opcional YSG; no Saber-Translator, embora o prompt peça a manutenção do texto original, a ferramenta ainda apaga a arte da onomatopeia e a redesenha com fonte comum; e o Comic Translate traduz as onomatopeias como fala. O Auto Scanlator, por sua vez, utiliza a compreensão visual do modelo de linguagem multimodal para identificar conjuntamente tanto as onomatopeias quanto os textos escritos sobre objetos da cena, mantendo ambos intactos na página (Seção~\ref{sec:escopo}).
+Para as onomatopeias e para os textos escritos sobre objetos da cena, as ferramentas são classificadas em uma de três categorias, conforme o resultado sobre a imagem, e a coluna de mecanismo e condição registra o que altera esse resultado:
+
+\begin{itemize}
+    \item \textbf{A}: a região permanece com os pixels originais intactos;
+    \item \textbf{B}: o texto é apagado e redesenhado como texto comum;
+    \item \textbf{C}: o texto é apagado e redesenhado com tratamento gráfico que recria o efeito.
+\end{itemize}
+
+\begin{table}[H]
+    \caption{Tratamento dado às onomatopeias pelas ferramentas de código aberto e pelo Auto Scanlator}
+    \label{tab:comparacao-onomatopeias}
+    \centering
+    \footnotesize
+    \setlength{\tabcolsep}{3pt}
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{|p{3.2cm}|p{2.0cm}|p{9.0cm}|}
+        \hline
+        \textbf{Ferramenta} & \textbf{Categoria} & \textbf{Mecanismo e condição} \\
+        \hline
+        \hline
+        Manga Image Translator & A & Prompt que instrui o modelo a preservar os efeitos sonoros e filtro que descarta o bloco cuja tradução seja idêntica ao original. Se o modelo traduzir o efeito em vez de repeti-lo, como no motor gemini\_2stage, a região é apagada e redesenhada (B). \\
+        \hline
+        Koharu & A & Classe onomatopoeia do detector de layout, cuja região fica fora do reconhecimento óptico, da tradução, da máscara e do letreiramento. Se o detector a classificar como texto, o prompt manda traduzir os efeitos sonoros, e a região é apagada e redesenhada (B). \\
+        \hline
+        BallonsTranslator & A & O detector padrão, o YSG, não reconhece onomatopeias, então a região não gera bloco nem máscara. Se um detector a reconhecer, a região vira bloco e é apagada e redesenhada (B). Há ainda um filtro opcional de onomatopeia no servidor Stariver. \\
+        \hline
+        Saber-Translator & B & O prompt manda manter as onomatopeias e as palavras de efeito sonoro sem tradução, mas não há filtro de igualdade, e o texto repetido é apagado e redesenhado como texto comum. \\
+        \hline
+        Comic Translate & B & O prompt trata apenas do texto sem sentido, e a onomatopeia, por ser alfanumérica, passa no filtro de renderização e é apagada e redesenhada como texto comum. \\
+        \hline
+        Auto Scanlator & A & Modelo de linguagem multimodal que recebe a imagem da página e omite o bloco da resposta, cuja região é restaurada com os pixels da página original. \\
+        \hline
+    \end{tabular}
+    \fonte{elaborada pelo autor.}
+\end{table}
+
+\begin{table}[H]
+    \caption{Tratamento dado aos textos escritos sobre objetos da cena pelas ferramentas de código aberto e pelo Auto Scanlator}
+    \label{tab:comparacao-texto-cena}
+    \centering
+    \footnotesize
+    \setlength{\tabcolsep}{3pt}
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{|p{3.2cm}|p{2.0cm}|p{9.0cm}|}
+        \hline
+        \textbf{Ferramenta} & \textbf{Categoria} & \textbf{Mecanismo e condição} \\
+        \hline
+        \hline
+        Manga Image Translator & B & Nenhuma instrução sobre texto de cena; o bloco detectado é traduzido e sobrescrito. \\
+        \hline
+        Koharu & B & Não há classe para texto de cena; a placa ou a tela classificada como texto é apagada e letreirada como fala. \\
+        \hline
+        BallonsTranslator & B & Nenhuma instrução sobre texto de cena; a máscara cobre todo bloco detectado, que é apagado e letreirado como fala. \\
+        \hline
+        Saber-Translator & B & Nenhuma instrução sobre texto de cena; o bloco detectado é traduzido e sobrescrito. \\
+        \hline
+        Comic Translate & B & Nenhuma instrução sobre texto de cena; o bloco detectado é traduzido e sobrescrito. \\
+        \hline
+        Auto Scanlator & A & Modelo de linguagem multimodal que recebe a imagem da página e omite o bloco da resposta, cuja região é restaurada com os pixels da página original. \\
+        \hline
+    \end{tabular}
+    \fonte{elaborada pelo autor.}
+\end{table}
+
+Quanto ao tratamento dos tipos de texto, todas as ferramentas traduzem os diálogos e os comentários e narração. Nas onomatopeias, o Manga Image Translator, o Koharu e o BallonsTranslator alcançam a categoria A, mas esse resultado depende do motor de tradução ou do detector em uso (Tabela~\ref{tab:comparacao-onomatopeias}). Já nos textos escritos sobre objetos da cena, as cinco ferramentas recaem na categoria B, apagando placas e fachadas com inpainting e sobrepondo a tradução com a fonte padrão de diálogo (Tabela~\ref{tab:comparacao-texto-cena}). Nenhuma delas atinge a categoria C em qualquer um dos dois tipos. O Auto Scanlator utiliza o modelo de linguagem multimodal para identificar conjuntamente as onomatopeias e os textos escritos sobre objetos da cena, mantendo ambos intactos na página e garantindo a categoria A nos dois casos (Seção~\ref{sec:escopo}).
 
 A análise comparativa evidencia que, embora as ferramentas de código aberto compartilhem a estrutura geral da pipeline com o LaMa e a tradução por LLMs, nenhuma delas contempla a preservação automática do negrito nas falas nem resolve de forma unificada a preservação de onomatopeias e textos escritos sobre objetos da cena. Essas duas lacunas fundamentam as hipóteses H1 e H2 investigadas neste trabalho (Seção~\ref{sec:problema}).
 
@@ -346,13 +399,9 @@ A análise comparativa evidencia que, embora as ferramentas de código aberto co
 \begin{figure}[H]
     \caption{Pipeline do Auto Scanlator, da página original à página traduzida}
     \label{fig:pipeline}
-    \includegraphics[width=\textwidth]{imagens/pipeline.png}
+    \noindent\makebox[\textwidth][l]{\hspace*{-1.5cm}\includegraphics[width=18.5cm]{imagens/pipeline.png}}
     \fonte{elaborada pelo autor.}
 \end{figure}
-
-\attention{REVER ESTA FIGURA: conferir se o diagrama ainda destaca cor, borda, ângulo e posição e atualizar para as duas frentes, a visão computacional no negrito e o modelo de linguagem multimodal na detecção dos tipos de texto.}
-
-\attention{INSERIR UMA FIGURA POR ETAPA, COM EXEMPLO REAL}
 
 \propGuilheme{falar sobre os modelos e tecnologias usadas em um paragrafo introdutorio para coisas ocmo python, e nas etapas especificas para ocisas como gemma e paddle}
 
