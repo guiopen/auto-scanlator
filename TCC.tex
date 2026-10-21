@@ -396,6 +396,8 @@ A análise comparativa evidencia que, embora as ferramentas de código aberto co
 \chapter{AUTO SCANLATOR}
 \label{cap:auto-scanlator}
 
+Este capítulo descreve a arquitetura e o funcionamento do Auto Scanlator, implementado em Python e operado por linha de comando para execução local em hardware convencional (Seção~\ref{sec:escopo}). O sistema recebe as imagens das páginas de um quadrinho junto com os códigos dos idiomas de origem e de destino e processa cada página por uma pipeline sequencial dividida em cinco etapas, compreendendo a detecção e o reconhecimento óptico do texto, a remoção do texto original por inpainting, a detecção do negrito por visão computacional, a tradução e filtragem de blocos por um modelo de linguagem multimodal e o letreiramento da página traduzida. A Figura~\ref{fig:pipeline} apresenta o fluxo completo da pipeline, cujas etapas e tecnologias são detalhadas nas seções a seguir.
+
 \begin{figure}[H]
     \caption{Pipeline do Auto Scanlator, da página original à página traduzida}
     \label{fig:pipeline}
@@ -403,12 +405,10 @@ A análise comparativa evidencia que, embora as ferramentas de código aberto co
     \fonte{elaborada pelo autor.}
 \end{figure}
 
-\propGuilheme{falar sobre os modelos e tecnologias usadas em um paragrafo introdutorio para coisas ocmo python, e nas etapas especificas para ocisas como gemma e paddle}
-
 \section{DETECÇÃO E RECONHECIMENTO}
 \label{sec:as-deteccao}
 
-A primeira etapa da pipeline recebe a página e o código do idioma de origem e executa a detecção e o reconhecimento em uma única passagem, com o PaddleOCR 3.7 \cite{paddleocr}. Esse código seleciona o modelo de reconhecimento, que é instanciado uma vez e reaproveitado em todas as páginas da execução. O resultado é uma lista de linhas, cada uma com o texto reconhecido e o quadrilátero que a delimita na página.
+A primeira etapa da pipeline recebe a página e o código do idioma de origem e executa a detecção e o reconhecimento óptico em uma única passagem com os modelos da família PP-OCRv6 \cite{zhang2026ppocrv6}, executados por meio do pacote oficial do PaddleOCR para Python \cite{paddleocr}. O pacote seleciona o modelo de reconhecimento conforme o idioma de origem, e a instância é criada uma vez e reaproveitada em todas as páginas da execução. O resultado é uma lista de linhas, cada uma com o texto reconhecido e o quadrilátero que a delimita na página.
 
 As linhas são então agrupadas em blocos, cada bloco correspondendo, em geral, a uma região de texto, como um balão ou um recordatório. O agrupamento une duas linhas quando seus retângulos, previamente expandidos, se intersectam, seus ângulos são próximos e a interseção cobre ao menos metade da altura ou da largura da menor delas. A expansão vertical é maior que a horizontal, o que aproxima as linhas empilhadas de um mesmo balão, e a proximidade entre os ângulos evita a união de linhas com inclinações distintas. A Figura~\ref{fig:deteccao} mostra as linhas detectadas e os blocos formados em uma página.
 
@@ -424,7 +424,7 @@ Cada bloco reúne o texto reconhecido de suas linhas e os polígonos que as deli
 \section{INPAINTING}
 \label{sec:as-inpainting}
 
-O inpainting é a etapa que remove o texto original da página, para que o texto traduzido seja inserido sobre uma página limpa. A máscara da remoção vem dos blocos detectados na etapa anterior, cujos polígonos de linha são preenchidos em uma máscara binária e dilatados para cobrir também as bordas dos caracteres. A página original e a máscara são então passadas ao LaMa \cite{suvorov2022lama}, modelo de inpainting baseado em aprendizado profundo (Seção~\ref{sec:inpainting}), que reconstrói o desenho sob o texto. A Figura~\ref{fig:inpainting} mostra uma página antes e depois da remoção.
+O inpainting é a etapa que remove o texto original da página, para que o texto traduzido seja inserido sobre uma página limpa. A máscara da remoção vem dos blocos detectados na etapa anterior, cujos polígonos de linha são preenchidos em uma máscara binária e dilatados para cobrir também as bordas dos caracteres. A página original e a máscara são então processadas pelo modelo LaMa \cite{suvorov2022lama} (Seção~\ref{sec:inpainting}) por meio do pacote Python simple-lama-inpainting \cite{simplelamainpainting}, que reconstrói o desenho sob o texto. A Figura~\ref{fig:inpainting} mostra uma página antes e depois da remoção.
 
 Como a máscara cobre apenas as linhas detectadas e uma margem estreita ao redor delas, em vez do balão inteiro, a reconstrução fica restrita às áreas que continham caracteres. O inpainting é executado inicialmente sobre todos os blocos detectados, inclusive as onomatopeias e os textos escritos sobre objetos da cena, porque a página limpa resultante serve de referência de fundo para isolar os caracteres na etapa de detecção do negrito (Seção~\ref{sec:as-atributos}), cujas marcações devem ser enviadas ao modelo de linguagem multimodal. A página original, por sua vez, é mantida tanto para ser enviada ao modelo na etapa de tradução e filtragem quanto para restaurar, após a filtragem, as regiões dos blocos descartados, compondo a imagem mista que segue para o letreiramento (Seções~\ref{sec:as-traducao} e~\ref{sec:as-letreiramento}).
 
@@ -449,7 +449,7 @@ As palavras em negrito são envolvidas pelas etiquetas \texttt{<b>} e \texttt{</
 \section{TRADUÇÃO E FILTRAGEM}
 \label{sec:as-traducao}
 
-A tradução e a filtragem dos blocos acontecem em uma única chamada a um modelo de linguagem multimodal, que recebe a imagem da página e a lista dos blocos detectados, cada um com seu texto, além dos idiomas de origem e de destino. A imagem fornece o contexto visual da página, que o modelo usa para desambiguar o texto e para julgar se um bloco deve ser traduzido, e a unidade de tradução é a página, com todos os blocos enviados juntos.
+A tradução e a filtragem dos blocos acontecem em uma única chamada ao modelo de linguagem multimodal Gemma 4 de 12 bilhões de parâmetros, utilizado em sua versão QAT em 4 bits \cite{gemmateam2026gemma4} e executado localmente por meio do motor de inferência llama.cpp \cite{llamacpp}. O modelo recebe a imagem da página e a lista dos blocos detectados, cada um com seu texto, além dos idiomas de origem e de destino. A imagem fornece o contexto visual da página, que o modelo usa para desambiguar o texto e para julgar se um bloco deve ser traduzido, e a unidade de tradução é a página, com todos os blocos enviados juntos.
 
 O prompt define as regras de tradução e de filtragem (Seção~\ref{sec:escopo}). O modelo deve traduzir apenas os blocos de fala e narração e omitir os demais, como as onomatopeias e os textos escritos sobre objetos da cena. Cada bloco é traduzido como um texto único, e não linha a linha, de forma natural em vez de literal, mantendo os nomes próprios exatamente como no original e preservando os recursos estilísticos do autor, como palavras censuradas, travessões de hesitação ou interrupção, pontuação repetida, maiúsculas e minúsculas. O modelo também corrige erros do reconhecimento óptico, como palavras unidas, letras faltantes e linhas fragmentadas, conferindo o texto com a imagem, sem interferir em gírias, dialetos ou grafias intencionais. As etiquetas de negrito do texto original (Seção~\ref{sec:as-atributos}) devem ser mantidas em torno das palavras correspondentes da tradução.
 
