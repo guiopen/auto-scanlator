@@ -314,13 +314,13 @@ A Tabela~\ref{tab:comparacao-ferramentas} compara as cinco ferramentas e o Auto 
         \hline
         \multicolumn{7}{|l|}{\textbf{Pipeline e tradução}} \\
         \hline
-        Remoção do texto original & LaMa (padrão), AOT, SD & LaMa, AOT, FLUX, RORem & cv2, PatchMatch, AOT, LaMa, Flux, LLM & LaMa ou cor sólida & LaMa, AOT (MI-GAN no código) & LaMa \\
+        Remoção do texto original & LaMa, AOT, SD & LaMa, AOT, FLUX, RORem & LaMa, AOT, Flux, cv2, PatchMatch, LLM & LaMa, cor sólida & LaMa, AOT, MI-GAN & LaMa \\
         \hline
-        Traduz com LLM & Sim; remoto e local & Sim; local e remoto & Sim; remoto e local & Sim; remoto e local & Sim; remoto e local & Sim; multimodal \\
+        Pode traduzir com LLM & Sim & Sim & Sim & Sim & Sim & Sim \\
         \hline
-        Usa contexto visual & Só em dois motores & Sim; opcional & Opcional; desligado & Só no modo HQ & Opcional; desligado & Sim \\
+        Usa contexto visual & Restrito & Opcional & Opcional & Restrito & Opcional & Padrão \\
         \hline
-        Contexto da tradução & Página; anteriores no ChatGPT & Página & Página; histórico no LLM & Página; lotes no modo HQ & Página; contexto extra & Página \\
+        Contexto da tradução & Página ou páginas anteriores & Página & Página ou histórico & Página ou lote de páginas & Página ou contexto extra & Página \\
         \hline
     \end{tabular}
     \fonte{elaborada pelo autor.}
@@ -341,24 +341,24 @@ Para as onomatopeias e para os textos escritos sobre objetos da cena, as ferrame
     \label{tab:comparacao-onomatopeias}
     \centering
     \footnotesize
-    \setlength{\tabcolsep}{3pt}
+    \setlength{\tabcolsep}{4pt}
     \renewcommand{\arraystretch}{1.25}
-    \begin{tabular}{|p{3.2cm}|p{2.0cm}|p{9.0cm}|}
+    \begin{tabular}{|p{3.5cm}|c|p{10.0cm}|}
         \hline
         \textbf{Ferramenta} & \textbf{Categoria} & \textbf{Mecanismo e condição} \\
         \hline
         \hline
-        Manga Image Translator & A & Prompt que instrui o modelo a preservar os efeitos sonoros e filtro que descarta o bloco cuja tradução seja idêntica ao original. Se o modelo traduzir o efeito em vez de repeti-lo, como no motor gemini\_2stage, a região é apagada e redesenhada (B). \\
+        Manga Image Translator & A & O prompt instrui a repetir o efeito sonoro e um filtro descarta blocos com tradução idêntica ao original. Cai em B se o motor traduzir o termo. \\
         \hline
-        Koharu & A & Classe onomatopoeia do detector de layout, cuja região fica fora do reconhecimento óptico, da tradução, da máscara e do letreiramento. Se o detector a classificar como texto, o prompt manda traduzir os efeitos sonoros, e a região é apagada e redesenhada (B). \\
+        Koharu & A & O detector possui classe própria para onomatopeia e a exclui da pipeline. Cai em B se o detector a classificar como texto comum. \\
         \hline
-        BallonsTranslator & A & O detector padrão, o YSG, não reconhece onomatopeias, então a região não gera bloco nem máscara. Se um detector a reconhecer, a região vira bloco e é apagada e redesenhada (B). Há ainda um filtro opcional de onomatopeia no servidor Stariver. \\
+        BallonsTranslator & A & O detector padrão (YSG) ignora onomatopeias. Cai em B se outro detector capturá-las sem o filtro opcional do OCR Stariver. \\
         \hline
-        Saber-Translator & B & O prompt manda manter as onomatopeias e as palavras de efeito sonoro sem tradução, mas não há filtro de igualdade, e o texto repetido é apagado e redesenhado como texto comum. \\
+        Saber-Translator & B & O prompt instrui a repetir o efeito sonoro, mas não há filtro de descarte, então o texto repetido é letreirado sobre a região limpa. \\
         \hline
-        Comic Translate & B & O prompt trata apenas do texto sem sentido, e a onomatopeia, por ser alfanumérica, passa no filtro de renderização e é apagada e redesenhada como texto comum. \\
+        Comic Translate & B & Sem distinção para onomatopeias; todo bloco detectado é processado como texto de fala e narração. \\
         \hline
-        Auto Scanlator & A & Modelo de linguagem multimodal que recebe a imagem da página e omite o bloco da resposta, cuja região é restaurada com os pixels da página original. \\
+        Auto Scanlator & A & O MLLM identifica o bloco pela imagem da página e o omite da resposta, restaurando os pixels originais da região. \\
         \hline
     \end{tabular}
     \fonte{elaborada pelo autor.}
@@ -369,24 +369,24 @@ Para as onomatopeias e para os textos escritos sobre objetos da cena, as ferrame
     \label{tab:comparacao-texto-cena}
     \centering
     \footnotesize
-    \setlength{\tabcolsep}{3pt}
+    \setlength{\tabcolsep}{4pt}
     \renewcommand{\arraystretch}{1.25}
-    \begin{tabular}{|p{3.2cm}|p{2.0cm}|p{9.0cm}|}
+    \begin{tabular}{|p{3.5cm}|c|p{10.0cm}|}
         \hline
         \textbf{Ferramenta} & \textbf{Categoria} & \textbf{Mecanismo e condição} \\
         \hline
         \hline
-        Manga Image Translator & B & Nenhuma instrução sobre texto de cena; o bloco detectado é traduzido e sobrescrito. \\
+        Manga Image Translator & B & Sem distinção para texto escrito sobre objeto da cena; todo bloco detectado é processado como texto de fala e narração. \\
         \hline
-        Koharu & B & Não há classe para texto de cena; a placa ou a tela classificada como texto é apagada e letreirada como fala. \\
+        Koharu & B & Sem distinção para texto escrito sobre objeto da cena; todo bloco detectado é processado como texto de fala e narração. \\
         \hline
-        BallonsTranslator & B & Nenhuma instrução sobre texto de cena; a máscara cobre todo bloco detectado, que é apagado e letreirado como fala. \\
+        BallonsTranslator & B & Sem distinção para texto escrito sobre objeto da cena; todo bloco detectado é processado como texto de fala e narração. \\
         \hline
-        Saber-Translator & B & Nenhuma instrução sobre texto de cena; o bloco detectado é traduzido e sobrescrito. \\
+        Saber-Translator & B & Sem distinção para texto escrito sobre objeto da cena; todo bloco detectado é processado como texto de fala e narração. \\
         \hline
-        Comic Translate & B & Nenhuma instrução sobre texto de cena; o bloco detectado é traduzido e sobrescrito. \\
+        Comic Translate & B & Sem distinção para texto escrito sobre objeto da cena; todo bloco detectado é processado como texto de fala e narração. \\
         \hline
-        Auto Scanlator & A & Modelo de linguagem multimodal que recebe a imagem da página e omite o bloco da resposta, cuja região é restaurada com os pixels da página original. \\
+        Auto Scanlator & A & O MLLM identifica o bloco pela imagem da página e o omite da resposta, restaurando os pixels originais da região. \\
         \hline
     \end{tabular}
     \fonte{elaborada pelo autor.}
