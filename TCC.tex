@@ -111,9 +111,12 @@ Esse interesse institucional em automatizar a tradução, contudo, esbarra no fa
     \fonte{Quadrinho \textit{Homem-Grilo: Mais Rápido que uma Bala}, de Cadu Simões e Fred Hildebrand (2021), traduzido do português para o inglês usando o software \textit{Manga Image Translator}.}
 \end{figure}
 
-\attention{INSERIR FIGURA: onomatopeia apagada e redesenhada como texto comum, perdendo o estilo do desenho.}
-
-\attention{INSERIR FIGURA: texto escrito sobre objetos da cena sobrescrito por letreiramento de fala, perdendo a naturalidade.}
+\begin{figure}[H]
+    \caption{Página traduzida com o texto escrito sobre objeto da cena letreirado como fala, sem tratamento gráfico adequado}
+    \label{fig:texto-em-cena-sem-preservacao}
+    \noindent\makebox[\textwidth][l]{\hspace*{-1.5cm}\includegraphics[width=18.5cm]{imagens/texto_em_cena_sem_preservacao.png}}
+    \fonte{Quadrinho \textit{Pepper\&Carrot}, episódio 3, \textit{The Secret Ingredients}, de David Revoy (2014), traduzido do inglês para o português usando o software \textit{Manga Image Translator}.}
+\end{figure}
 
 Nas pesquisas e ferramentas que automatizam esse processo, porém, o cuidado visual restringiu-se à remoção do texto original, impulsionada pelo avanço dos modelos de inpainting \cite{quan2024deeplearningbasedimagevideo}. Como o reconhecimento óptico converte as imagens das palavras em texto puro sem registrar a espessura dos traços e os detectores de texto capturam indistintamente qualquer elemento verbal da página, a literatura e as ferramentas de código aberto acabam ignorando essas particularidades no letreiramento. Todas as ferramentas analisadas neste trabalho inserem o texto traduzido com peso tipográfico uniforme, perdendo o negrito do original, e nenhuma delas distingue conjuntamente as onomatopeias e os textos escritos sobre objetos da cena, apagando e sobrescrevendo elementos gráficos do cenário como se fossem falas comuns (Seção~\ref{sec:ferramentas}).
 
