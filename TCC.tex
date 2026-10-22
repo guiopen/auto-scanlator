@@ -416,10 +416,11 @@ A primeira etapa da pipeline recebe a página e o código do idioma de origem e 
 As linhas são então agrupadas em blocos, cada bloco correspondendo, em geral, a uma região de texto, como um balão ou um recordatório. O agrupamento une duas linhas quando seus retângulos, previamente expandidos, se intersectam, seus ângulos são próximos e a interseção cobre ao menos metade da altura ou da largura da menor delas. A expansão vertical é maior que a horizontal, o que aproxima as linhas empilhadas de um mesmo balão, e a proximidade entre os ângulos evita a união de linhas com inclinações distintas. A Figura~\ref{fig:deteccao} mostra as linhas detectadas e os blocos formados em uma página.
 
 \begin{figure}[H]
-    \caption{Linhas de texto detectadas e blocos formados em uma página}
+    \caption{Linhas de texto detectadas}
     \label{fig:deteccao}
-    \includegraphics[width=\textwidth]{imagens/deteccao.png}
-    \fonte{elaborada pelo autor.}
+    \centering
+    \includegraphics[width=13.5cm]{imagens/etapa_deteccao.png}
+    \fonte{Quadrinho \textit{Homem-Grilo: O Escudeiro das Trevas}, de Cadu Simões, com as linhas e os blocos detectados pelo software \textit{Auto Scanlator}.}
 \end{figure}
 
 Cada bloco reúne o texto reconhecido de suas linhas e os polígonos que as delimitam. O texto segue para a tradução, e os polígonos preservam a geometria do texto original, usada para delimitar as regiões removidas pelo inpainting (Seção~\ref{sec:as-inpainting}) e para restituir a posição e o ângulo no letreiramento (Seção~\ref{sec:as-letreiramento}).
@@ -434,8 +435,9 @@ Como a máscara cobre apenas as linhas detectadas e uma margem estreita ao redor
 \begin{figure}[H]
     \caption{Remoção do texto original por inpainting}
     \label{fig:inpainting}
-    \includegraphics[width=\textwidth]{imagens/inpainting.png}
-    \fonte{elaborada pelo autor.}
+    \centering
+    \includegraphics[width=13.5cm]{imagens/etapa_inpaint.png}
+    \fonte{Quadrinho \textit{Homem-Grilo: O Escudeiro das Trevas}, de Cadu Simões, com o texto removido pelo software \textit{Auto Scanlator}.}
 \end{figure}
 
 \section{DETECÇÃO DO NEGRITO}
@@ -445,7 +447,15 @@ A terceira etapa da pipeline identifica quais palavras do texto original estão 
 
 Os caracteres são isolados pela diferença entre cada recorte da página original e o recorte correspondente da página limpa produzida pelo inpainting (Seção~\ref{sec:as-inpainting}), e a limiarização dessa diferença produz a máscara dos caracteres. Como a referência é o fundo reconstruído, e não uma cor fixa, o método funciona para texto escuro sobre fundo claro e para o inverso. A máscara é então alinhada à horizontal, e as palavras são separadas pelos espaços em branco entre elas, cada uma recebendo o termo correspondente do texto reconhecido.
 
-A espessura de cada palavra é medida sobre o esqueleto dos traços, obtido pelo eixo medial. A transformada de distância dá a distância de cada pixel do texto até o fundo e, sobre o esqueleto, essa distância equivale à metade da largura do traço; a média dessas distâncias, normalizada pela altura dos caracteres do bloco, é a medida da palavra. A referência de peso normal é a mediana das medidas das palavras da página com mais de uma letra, e a palavra é classificada como negrito quando supera essa referência com margem, maior para palavras de uma ou duas letras. Palavras sem medida válida não são classificadas como negrito.
+A espessura de cada palavra é medida sobre o esqueleto dos traços, obtido pelo eixo medial. A transformada de distância dá a distância de cada pixel do texto até o fundo e, sobre o esqueleto, essa distância equivale à metade da largura do traço; a média dessas distâncias, normalizada pela altura dos caracteres do bloco, é a medida da palavra. A referência de peso normal é a mediana das medidas das palavras da página com mais de uma letra, e a palavra é classificada como negrito quando supera essa referência com margem, maior para palavras de uma ou duas letras. Palavras sem medida válida não são classificadas como negrito. A Figura~\ref{fig:negrito} mostra as palavras classificadas como negrito em uma página.
+
+\begin{figure}[H]
+    \caption{Palavras classificadas como negrito em uma página}
+    \label{fig:negrito}
+    \centering
+    \includegraphics[width=13.5cm]{imagens/etapa_negrito.png}
+    \fonte{Quadrinho \textit{Homem-Grilo: O Escudeiro das Trevas}, de Cadu Simões, com as palavras em negrito detectadas pelo software \textit{Auto Scanlator}.}
+\end{figure}
 
 As palavras em negrito são envolvidas pelas etiquetas \texttt{<b>} e \texttt{</b>} no texto do bloco. A tradução deve manter as etiquetas em torno das palavras correspondentes (Seção~\ref{sec:as-traducao}), e o letreiramento usa a variante em negrito da fonte nos trechos marcados (Seção~\ref{sec:as-letreiramento}).
 
@@ -456,14 +466,7 @@ A tradução e a filtragem dos blocos acontecem em uma única chamada ao modelo 
 
 O prompt define as regras de tradução e de filtragem (Seção~\ref{sec:escopo}). O modelo deve traduzir apenas os blocos de fala e narração e omitir os demais, como as onomatopeias e os textos escritos sobre objetos da cena. Cada bloco é traduzido como um texto único, e não linha a linha, de forma natural em vez de literal, mantendo os nomes próprios exatamente como no original e preservando os recursos estilísticos do autor, como palavras censuradas, travessões de hesitação ou interrupção, pontuação repetida, maiúsculas e minúsculas. O modelo também corrige erros do reconhecimento óptico, como palavras unidas, letras faltantes e linhas fragmentadas, conferindo o texto com a imagem, sem interferir em gírias, dialetos ou grafias intencionais. As etiquetas de negrito do texto original (Seção~\ref{sec:as-atributos}) devem ser mantidas em torno das palavras correspondentes da tradução.
 
-O modelo responde com uma lista em JSON na qual cada item associa o índice de um bloco ao texto traduzido. Os blocos que o modelo omite, correspondentes às onomatopeias e aos textos escritos sobre objetos da cena, são descartados da tradução. Para que esses elementos permaneçam intactos na página final, as regiões da máscara correspondentes aos blocos descartados são restauradas na página limpa a partir dos pixels da página original. Os blocos restantes seguem com o texto traduzido e os polígonos das linhas para o letreiramento (Seção~\ref{sec:as-letreiramento}). A Figura~\ref{fig:traducao} mostra a tradução dos blocos e a filtragem em uma página.
-
-\begin{figure}[H]
-    \caption{Blocos traduzidos e blocos descartados em uma página}
-    \label{fig:traducao}
-    \includegraphics[width=\textwidth]{imagens/traducao.png}
-    \fonte{elaborada pelo autor.}
-\end{figure}
+O modelo responde com uma lista em JSON na qual cada item associa o índice de um bloco ao texto traduzido. Os blocos que o modelo omite, correspondentes às onomatopeias e aos textos escritos sobre objetos da cena, são descartados da tradução. Para que esses elementos permaneçam intactos na página final, as regiões da máscara correspondentes aos blocos descartados são restauradas na página limpa a partir dos pixels da página original. Os blocos restantes seguem com o texto traduzido e os polígonos das linhas para o letreiramento (Seção~\ref{sec:as-letreiramento}).
 
 \section{LETREIRAMENTO}
 \label{sec:as-letreiramento}
@@ -479,8 +482,8 @@ As palavras marcadas com as etiquetas \texttt{<b>} e \texttt{</b>} são desenhad
 \begin{figure}[H]
     \caption{Página traduzida após o letreiramento}
     \label{fig:letreiramento}
-    \includegraphics[width=\textwidth]{imagens/letreiramento.png}
-    \fonte{elaborada pelo autor.}
+    \noindent\makebox[\textwidth][l]{\hspace*{-1.5cm}\includegraphics[width=18.5cm]{imagens/etapa_letreiramento.png}}
+    \fonte{Quadrinho \textit{Homem-Grilo: O Escudeiro das Trevas}, de Cadu Simões, traduzido do português para o inglês usando o software \textit{Auto Scanlator}.}
 \end{figure}
 
 \chapter{AVALIAÇÃO E RESULTADOS}
