@@ -80,7 +80,9 @@
 \end{folhadeaprovacao}
 
 \begin{resumo}
-Este trabalho propõe o desenvolvimento do Auto Scanlator, um sistema de tradução automatizada de histórias em quadrinhos com foco na preservação do negrito no texto de fala e narração e na manutenção de onomatopeias e textos escritos sobre objetos da cena intactos na página. O sistema organiza-se em uma pipeline sequencial que realiza a detecção e o reconhecimento óptico do texto presente na página, remove o texto original por meio de inpainting, identifica as palavras em negrito por visão computacional, emprega um modelo de linguagem multimodal para traduzir o texto de fala e narração e filtrar os demais tipos de texto, e executa o letreiramento inserindo a tradução com o negrito preservado. O sistema utiliza exclusivamente tecnologias livres e executa localmente em hardware convencional.
+A tradução de histórias em quadrinhos exige preservar a apresentação visual da página, pois o uso seletivo do negrito nas falas indica ênfase e volume de voz, enquanto as onomatopeias e os textos escritos sobre objetos da cena fazem parte do próprio desenho. No entanto, os sistemas e ferramentas de código aberto atuais aplicam peso tipográfico uniforme no letreiramento e apagam indistintamente os textos integrados à arte para sobrescrevê-los com fontes comuns. Diante disso, este trabalho propõe o desenvolvimento do Auto Scanlator, um sistema de tradução automatizada de histórias em quadrinhos com foco na preservação do negrito no texto de fala e narração e na manutenção de onomatopeias e textos escritos sobre objetos da cena intactos na página. O sistema organiza-se em uma pipeline sequencial que realiza a detecção e o reconhecimento óptico do texto presente em cada página, remove o texto original por meio de inpainting, identifica as palavras em negrito por visão computacional, emprega um modelo de linguagem multimodal para traduzir o texto de fala e narração e filtrar os demais tipos de texto, e executa o letreiramento inserindo a tradução com o negrito preservado. O sistema utiliza exclusivamente tecnologias livres e executa localmente em hardware convencional. Como resultados parciais, foram concluídas a análise comparativa de cinco ferramentas de código aberto, a implementação completa da pipeline e a definição do protocolo experimental. Até o final do trabalho, espera-se finalizar a anotação do conjunto de dados padrão-ouro e avaliar quantitativamente a detecção e a preservação do negrito e a detecção de onomatopeias e de textos escritos sobre objetos da cena.
+
+\textbf{Palavras-chave}: Histórias em quadrinhos. Tradução automática. Letreiramento. Visão computacional. Modelos de linguagem multimodais.
 \end{resumo}
 
 \pdfbookmark[0]{\listfigurename}{lof}
@@ -102,19 +104,20 @@ Este trabalho propõe o desenvolvimento do Auto Scanlator, um sistema de traduç
 
 Os quadrinhos estão entre os meios de expressão cultural de maior alcance no mundo contemporâneo, manifestando-se em tradições diversas, como o comic norte-americano, o quadrinho franco-belga, o mangá japonês, o webtoon coreano e o manhua chinês, cada uma com características próprias de linguagem visual e narrativa. Para alcançar públicos fora de seu idioma original, no entanto, essas obras dependem de tradução, um processo lento, custoso e especializado que limita quais delas se tornam acessíveis em outros idiomas. Essa dependência chega a ser tratada como questão estratégica de política pública, como ocorre na Coreia do Sul, onde a Korea Creative Content Agency já propõe o uso de inteligência artificial e sistemas de tradução automatizada como solução para o aumento de produtividade no processo de tradução \cite{kocca2025kwebtoons}. 
 
-Esse interesse institucional em automatizar a tradução, contudo, esbarra no fato de que o texto nos quadrinhos compõe a própria imagem, além de transmitir o conteúdo verbal. \citeonline{eisner1985comics} mostra que o letreiramento, tratado graficamente e a serviço da história, funciona como uma extensão da arte, transmitindo o clima da cena e a sugestão de som. A forma com que uma fala é grafada altera o que ela comunica, pois o uso seletivo do negrito cumpre papel prosódico ao dar ênfase, indicar volume de voz e antecipar o sentido do diálogo, de modo que o leitor consiga captar a ideia principal da fala apenas pelas palavras destacadas, assim como o contorno do balão informa o caráter do que está dentro dele \cite{eisner1985comics, mccloud1993understanding} (Seção~\ref{sec:tipografia}). Além das falas e da narração, a página contém onomatopeias e textos escritos sobre objetos da cena, como placas e fachadas, que fazem parte do próprio desenho e cuja adaptação exige recriar o traço e a perspectiva da arte (Seções~\ref{sec:quadrinhos} e~\ref{sec:letreiramento}). Disso decorre que traduzir quadrinhos exige preservar a integridade visual da página junto com o sentido verbal. Uma tradução automática que ignore o negrito das falas ou que apague onomatopeias e textos integrados ao cenário para sobrescrevê-los com tipografia comum compromete a leitura pretendida pelo autor e descaracteriza a obra original.
+Esse interesse institucional em automatizar a tradução, contudo, esbarra no fato de que o texto nos quadrinhos está integrado à própria imagem, além de transmitir o conteúdo verbal. \citeonline{eisner1985comics} mostra que o letreiramento, etapa em que o texto é inscrito na página, quando tratado graficamente e a serviço da história, funciona como uma extensão da arte, transmitindo o clima da cena e a sugestão de som. A forma com que uma fala é grafada altera o que ela comunica, pois o uso seletivo do negrito cumpre papel prosódico ao dar ênfase, indicar volume de voz e antecipar o sentido do diálogo, de modo que o leitor consiga captar a ideia principal da fala apenas pelas palavras destacadas, assim como o contorno do balão informa o caráter do que está dentro dele \cite{eisner1985comics, mccloud1993understanding} (Seção~\ref{sec:tipografia}). Além das falas e da narração, a página contém onomatopeias e textos escritos sobre objetos da cena, como placas e fachadas, que fazem parte do próprio desenho e cuja adaptação exige recriar o traço e a perspectiva da arte (Seções~\ref{sec:quadrinhos} e~\ref{sec:letreiramento}). Disso decorre que traduzir quadrinhos exige preservar a integridade visual da página junto com o sentido verbal. Uma tradução automática que ignore o negrito das falas (Figura~\ref{fig:pagina-sem-preservacao}) ou que apague onomatopeias e textos integrados ao cenário para sobrescrevê-los com tipografia comum (Figura~\ref{fig:texto-em-cena-sem-preservacao}) compromete a leitura pretendida pelo autor e descaracteriza a obra original.
 
-\begin{figure}[H]
+\begin{figure}[htb]
     \caption{Página traduzida sem a preservação do negrito do texto}
     \label{fig:pagina-sem-preservacao}
     \includegraphics[width=\textwidth]{imagens/traducao_sem_preservacao.png}
     \fonte{Quadrinho \textit{Homem-Grilo: Mais Rápido que uma Bala}, de Cadu Simões e Fred Hildebrand (2021), traduzido do português para o inglês usando o software \textit{Manga Image Translator}.}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htb]
     \caption{Página traduzida com o texto escrito sobre objeto da cena letreirado como fala, sem tratamento gráfico adequado}
     \label{fig:texto-em-cena-sem-preservacao}
-    \noindent\makebox[\textwidth][l]{\hspace*{-1.5cm}\includegraphics[width=18.5cm]{imagens/texto_em_cena_sem_preservacao.png}}
+    \centering
+    \includegraphics[width=\linewidth]{imagens/texto_em_cena_sem_preservacao.png}
     \fonte{Quadrinho \textit{Pepper\&Carrot}, episódio 3, \textit{The Secret Ingredients}, de David Revoy (2014), traduzido do inglês para o português usando o software \textit{Manga Image Translator}.}
 \end{figure}
 
@@ -174,7 +177,7 @@ Este capítulo apresenta os conceitos necessários para a compreensão do sistem
 
 Os quadrinhos são uma narrativa contada por imagens dispostas em sequência, com a fala dos personagens incorporada a elas na forma de balões. O balão faz a fala participar do mesmo modo visual das imagens, permitindo ao leitor ver e ler as palavras dos personagens simultaneamente às suas ações, enquanto nas demais artes gráficas os personagens restringem-se ao gesto e à pantomima. Os quadrinhos tecem palavra e imagem para contar uma história, em uma combinação na qual nenhuma das duas partes é suficiente sozinha \cite{harvey1994art}. Essa interdependência distingue os quadrinhos do cinema, que exibe o movimento diretamente em vez de reduzi-lo a momentos estáticos, da narrativa ilustrada, cujas imagens retratam passagens de um texto que existiria sem elas, e da literatura e das artes puramente pictóricas, que operam em apenas um desses modos \cite{harvey1994art}.
 
-\citeonline{borodo2016exploring} classifica o texto presente em uma página de quadrinhos em quatro tipos principais:
+\citeonline{borodo2016exploring} classifica o texto presente em uma página de quadrinhos em quatro tipos principais (Figura~\ref{fig:tipos-de-texto}):
 
 \begin{itemize}
     \item \textbf{Diálogos}, correspondentes à fala dos personagens, dispostos geralmente dentro de balões ou, por vezes, soltos sobre a cena;
@@ -183,10 +186,11 @@ Os quadrinhos são uma narrativa contada por imagens dispostas em sequência, co
     \item \textbf{Onomatopeias}, palavras desenhadas na cena para representar sons, como o impacto de um golpe ou o ruído de uma porta.
 \end{itemize}
 
-\begin{figure}[H]
+\begin{figure}[htb]
     \caption{Os quatro tipos de texto de uma página de quadrinhos}
     \label{fig:tipos-de-texto}
-    \includegraphics[width=\textwidth]{imagens/tipos_de_texto.png}
+    \centering
+    \includegraphics[trim={1.4cm 0 0 0}, clip, width=\linewidth]{imagens/tipos_de_texto.png}
     \fonte{Quadrinho \textit{The Amazing Spider-Man}, capítulo 1.}
 \end{figure}
 
@@ -295,7 +299,7 @@ O Comic Translate \cite{comictranslate}, distribuído sob a licença Apache-2.0,
 A Tabela~\ref{tab:comparacao-ferramentas} compara as cinco ferramentas e o Auto Scanlator quanto à preservação do negrito e às escolhas de pipeline e de tradução. O tratamento dado às onomatopeias e aos textos escritos sobre objetos da cena é detalhado nas Tabelas~\ref{tab:comparacao-onomatopeias} e~\ref{tab:comparacao-texto-cena}.
 
 
-\begin{table}[H]
+\begin{table}[htb]
     \caption{Comparação entre as ferramentas de código aberto e o Auto Scanlator}
     \label{tab:comparacao-ferramentas}
     \centering
@@ -336,7 +340,7 @@ Para as onomatopeias e para os textos escritos sobre objetos da cena, as ferrame
     \item \textbf{C}: o texto é apagado e redesenhado com tratamento gráfico que recria o efeito.
 \end{itemize}
 
-\begin{table}[H]
+\begin{table}[htb]
     \caption{Tratamento dado às onomatopeias pelas ferramentas de código aberto e pelo Auto Scanlator}
     \label{tab:comparacao-onomatopeias}
     \centering
@@ -364,7 +368,7 @@ Para as onomatopeias e para os textos escritos sobre objetos da cena, as ferrame
     \fonte{elaborada pelo autor.}
 \end{table}
 
-\begin{table}[H]
+\begin{table}[htb]
     \caption{Tratamento dado aos textos escritos sobre objetos da cena pelas ferramentas de código aberto e pelo Auto Scanlator}
     \label{tab:comparacao-texto-cena}
     \centering
@@ -401,10 +405,11 @@ A análise comparativa evidencia que, embora as ferramentas de código aberto co
 
 Este capítulo descreve a arquitetura e o funcionamento do Auto Scanlator, implementado em Python e operado por linha de comando para execução local em hardware convencional (Seção~\ref{sec:escopo}). O sistema recebe as imagens das páginas de um quadrinho junto com os códigos dos idiomas de origem e de destino e processa cada página por uma pipeline sequencial dividida em cinco etapas, compreendendo a detecção e o reconhecimento óptico do texto, a remoção do texto original por inpainting, a detecção do negrito por visão computacional, a tradução e filtragem de blocos por um modelo de linguagem multimodal e o letreiramento da página traduzida. A Figura~\ref{fig:pipeline} apresenta o fluxo completo da pipeline, cujas etapas e tecnologias são detalhadas nas seções a seguir.
 
-\begin{figure}[H]
+\begin{figure}[htb]
     \caption{Pipeline do Auto Scanlator, da página original à página traduzida}
     \label{fig:pipeline}
-    \noindent\makebox[\textwidth][l]{\hspace*{-1.5cm}\includegraphics[width=18.5cm]{imagens/pipeline.png}}
+    \centering
+    \includegraphics[width=\linewidth]{imagens/pipeline.png}
     \fonte{elaborada pelo autor.}
 \end{figure}
 
@@ -415,11 +420,11 @@ A primeira etapa da pipeline recebe a página e o código do idioma de origem e 
 
 As linhas são então agrupadas em blocos, cada bloco correspondendo, em geral, a uma região de texto, como um balão ou um recordatório. O agrupamento une duas linhas quando seus retângulos, previamente expandidos, se intersectam, seus ângulos são próximos e a interseção cobre ao menos metade da altura ou da largura da menor delas. A expansão vertical é maior que a horizontal, o que aproxima as linhas empilhadas de um mesmo balão, e a proximidade entre os ângulos evita a união de linhas com inclinações distintas. A Figura~\ref{fig:deteccao} mostra as linhas detectadas e os blocos formados em uma página.
 
-\begin{figure}[H]
+\begin{figure}[htb]
     \caption{Linhas de texto detectadas}
     \label{fig:deteccao}
     \centering
-    \includegraphics[width=13.5cm]{imagens/etapa_deteccao.png}
+    \includegraphics[width=.8\linewidth]{imagens/etapa_deteccao.png}
     \fonte{Quadrinho \textit{Homem-Grilo: O Escudeiro das Trevas}, de Cadu Simões, com as linhas e os blocos detectados pelo software \textit{Auto Scanlator}.}
 \end{figure}
 
@@ -432,11 +437,11 @@ O inpainting é a etapa que remove o texto original da página, para que o texto
 
 Como a máscara cobre apenas as linhas detectadas e uma margem estreita ao redor delas, em vez do balão inteiro, a reconstrução fica restrita às áreas que continham caracteres. O inpainting é executado inicialmente sobre todos os blocos detectados, inclusive as onomatopeias e os textos escritos sobre objetos da cena, porque a página limpa resultante serve de referência de fundo para isolar os caracteres na etapa de detecção do negrito (Seção~\ref{sec:as-atributos}), cujas marcações devem ser enviadas ao modelo de linguagem multimodal. A página original, por sua vez, é mantida tanto para ser enviada ao modelo na etapa de tradução e filtragem quanto para restaurar, após a filtragem, as regiões dos blocos descartados, compondo a imagem mista que segue para o letreiramento (Seções~\ref{sec:as-traducao} e~\ref{sec:as-letreiramento}).
 
-\begin{figure}[H]
+\begin{figure}[htb]
     \caption{Remoção do texto original por inpainting}
     \label{fig:inpainting}
     \centering
-    \includegraphics[width=13.5cm]{imagens/etapa_inpaint.png}
+    \includegraphics[width=.8\linewidth]{imagens/etapa_inpaint.png}
     \fonte{Quadrinho \textit{Homem-Grilo: O Escudeiro das Trevas}, de Cadu Simões, com o texto removido pelo software \textit{Auto Scanlator}.}
 \end{figure}
 
@@ -449,11 +454,11 @@ Os caracteres são isolados pela diferença entre cada recorte da página origin
 
 A espessura de cada palavra é medida sobre o esqueleto dos traços, obtido pelo eixo medial. A transformada de distância dá a distância de cada pixel do texto até o fundo e, sobre o esqueleto, essa distância equivale à metade da largura do traço; a média dessas distâncias, normalizada pela altura dos caracteres do bloco, é a medida da palavra. A referência de peso normal é a mediana das medidas das palavras da página com mais de uma letra, e a palavra é classificada como negrito quando supera essa referência com margem, maior para palavras de uma ou duas letras. Palavras sem medida válida não são classificadas como negrito. A Figura~\ref{fig:negrito} mostra as palavras classificadas como negrito em uma página.
 
-\begin{figure}[H]
+\begin{figure}[htb]
     \caption{Palavras classificadas como negrito em uma página}
     \label{fig:negrito}
     \centering
-    \includegraphics[width=13.5cm]{imagens/etapa_negrito.png}
+    \includegraphics[width=.8\linewidth]{imagens/etapa_negrito.png}
     \fonte{Quadrinho \textit{Homem-Grilo: O Escudeiro das Trevas}, de Cadu Simões, com as palavras em negrito detectadas pelo software \textit{Auto Scanlator}.}
 \end{figure}
 
@@ -479,10 +484,11 @@ Nos blocos inclinados, a máscara é rotacionada para a horizontal, e o ajuste e
 
 As palavras marcadas com as etiquetas \texttt{<b>} e \texttt{</b>} são desenhadas com a variante em negrito da fonte, e as demais com a variante regular. Conforme delimitado na Seção~\ref{sec:escopo}, o texto é desenhado em preto com contorno branco ou em branco com contorno preto, de acordo com o contraste medido sobre o fundo da região na página limpa. A Figura~\ref{fig:letreiramento} mostra uma página traduzida após o letreiramento.
 
-\begin{figure}[H]
+\begin{figure}[htb]
     \caption{Página traduzida após o letreiramento}
     \label{fig:letreiramento}
-    \noindent\makebox[\textwidth][l]{\hspace*{-1.5cm}\includegraphics[width=18.5cm]{imagens/etapa_letreiramento.png}}
+    \centering
+    \includegraphics[width=\linewidth]{imagens/etapa_letreiramento.png}
     \fonte{Quadrinho \textit{Homem-Grilo: O Escudeiro das Trevas}, de Cadu Simões, traduzido do português para o inglês usando o software \textit{Auto Scanlator}.}
 \end{figure}
 
@@ -520,7 +526,7 @@ Por fim, a detecção de textos escritos sobre objetos da cena segue o mesmo pro
 
 \attention{PREENCHER APÓS OS EXPERIMENTOS: parágrafo apresentando e discutindo os resultados da detecção e da preservação do negrito (H1).}
 
-\begin{table}[H]
+\begin{table}[htb]
     \caption{Matriz de confusão da detecção do negrito por visão computacional}
     \label{tab:matriz-deteccao-negrito}
     \centering
@@ -538,7 +544,7 @@ Por fim, a detecção de textos escritos sobre objetos da cena segue o mesmo pro
     \fonte{elaborada pelo autor.}
 \end{table}
 
-\begin{table}[H]
+\begin{table}[htb]
     \caption{Matriz de confusão da preservação do negrito na tradução pelo MLLM}
     \label{tab:matriz-preservacao-negrito}
     \centering
@@ -558,7 +564,7 @@ Por fim, a detecção de textos escritos sobre objetos da cena segue o mesmo pro
 
 \attention{PREENCHER APÓS OS EXPERIMENTOS: parágrafo apresentando e discutindo os resultados da detecção de onomatopeias e de textos escritos sobre objetos da cena (H2).}
 
-\begin{table}[H]
+\begin{table}[htb]
     \caption{Matriz de confusão da detecção de onomatopeias pelo MLLM}
     \label{tab:matriz-onomatopeias}
     \centering
@@ -576,7 +582,7 @@ Por fim, a detecção de textos escritos sobre objetos da cena segue o mesmo pro
     \fonte{elaborada pelo autor.}
 \end{table}
 
-\begin{table}[H]
+\begin{table}[htb]
     \caption{Matriz de confusão da detecção de textos escritos sobre objetos da cena pelo MLLM}
     \label{tab:matriz-texto-cena}
     \centering
