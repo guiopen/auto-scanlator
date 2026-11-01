@@ -71,6 +71,12 @@ def _parse_llm_response(content: str) -> list[dict]:
     return []
 
 
+def _same_text(a: str, b: str) -> bool:
+    a = a.replace("<b>", "").replace("</b>", "")
+    b = b.replace("<b>", "").replace("</b>", "")
+    return " ".join(a.split()).casefold() == " ".join(b.split()).casefold()
+
+
 def translate_page(
     img: np.ndarray,
     grouped_blocks: list[dict],
@@ -95,13 +101,20 @@ def translate_page(
 
     llm_response = _parse_llm_response(content)
     indexed = {
-        b["block"]: b.get("translated_text", "")
+        b["block"]: b
         for b in llm_response
         if isinstance(b, dict) and "block" in b
     }
 
     result = []
     for i, block in enumerate(grouped_blocks):
-        if i in indexed:
-            result.append({**block, "translated_text": indexed[i]})
+        item = indexed.get(i)
+        if item is None or item.get("art_text"):
+            continue
+        translated_text = item.get("translated_text")
+        if not isinstance(translated_text, str) or not translated_text:
+            continue
+        if _same_text(translated_text, block.get("original_text", "")):
+            continue
+        result.append({**block, "translated_text": translated_text})
     return content, result

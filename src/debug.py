@@ -66,7 +66,7 @@ def debug_translation(raw_response: str, blocks: list[dict]):
         ),
         text,
     )
-    print(text)
+    print(f"Filtered blocks:\n{text}")
 
 
 def debug_grouping(
