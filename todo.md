@@ -3,7 +3,7 @@
 - Justificar o proque usar visão computaiconal pra negrito e pq usar llms para onomatopeia
 
 ### CODIGO:
-- estreitar condições de agrupamento (testar ocm iamgem 24, considerar line height tambem)
+- estreitar condições de agrupamento (testar ocm iamgem 24 e 29, considerar line height tambem)
 - OU, testar deixar a propria LLM agrupar e, no lugar da gente fazer uma inserção em bloco, a gente faz linha por linha mas aceita distribuir o texto pelas linhas, então um texto que aparecia na linha 3 pode ficar na linha 4 por exemplo, vale experimentar.
 Principal (afeta os resultados da pesquisa):
 - Preservar negrito (feito), caixa alta (feito), cor, angulo (feito), posição (feito) e bordas do texto
