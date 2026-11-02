@@ -59,6 +59,7 @@ def _run_pipeline(
         debug_merge(img, merged_blocks)
 
     if cleaned_page is not None:
+        cleaned_page = inpainter.restore(cleaned_page, img, grouped_blocks, blocks)
         result = insert_text(cleaned_page, merged_blocks)
         if config.debug_insertion:
             debug_insertion(img, result)
