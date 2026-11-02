@@ -82,7 +82,7 @@ def translate_page(
     grouped_blocks: list[dict],
     source_lang: str,
     target_lang: str,
-) -> tuple[str, list[dict]]:
+) -> tuple[str, list[dict], list[dict]]:
     prompt_lines = "\n".join(
         f"Block {i}: {block.get('marked_text', block['original_text'])}"
         for i, block in enumerate(grouped_blocks)
@@ -97,6 +97,8 @@ def translate_page(
 
     b64 = _encode_image(img)
     payload = _build_api_payload(b64, full_prompt)
+    if get_config().debug_translation:
+        print(f"Prompt sent:\n{full_prompt}")
     content = _call_llm_api(payload)
 
     llm_response = _parse_llm_response(content)
@@ -107,14 +109,18 @@ def translate_page(
     }
 
     result = []
+    art_text_blocks = []
     for i, block in enumerate(grouped_blocks):
         item = indexed.get(i)
-        if item is None or item.get("art_text"):
+        if item is None or not item.get("translate", True):
             continue
         translated_text = item.get("translated_text")
         if not isinstance(translated_text, str) or not translated_text:
             continue
         if _same_text(translated_text, block.get("original_text", "")):
             continue
+        if item.get("art_text"):
+            art_text_blocks.append({**block, "translated_text": translated_text})
+            continue
         result.append({**block, "translated_text": translated_text})
-    return content, result
+    return content, result, art_text_blocks

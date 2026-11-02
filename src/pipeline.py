@@ -15,6 +15,7 @@ from src.detection.bold import classify_bold
 from src.detection.group_lines import group_detections
 from src.detection.ocr import TextDetector
 from src.inpainting.lama import PageInpainter
+from src.insertion.art_text import replace_art_text
 from src.insertion.merge import merge_detections
 from src.insertion.render import insert_text
 from src.languages import SUPPORTED_LANGUAGES
@@ -48,11 +49,11 @@ def _run_pipeline(
         if config.debug_bold:
             debug_bold(img, bold_words, baseline)
 
-    raw_response, blocks = translate_page(
+    raw_response, blocks, art_text_blocks = translate_page(
         img, grouped_blocks, llm_source_lang, target_lang
     )
     if config.debug_translation:
-        debug_translation(raw_response, blocks)
+        debug_translation(raw_response, blocks, art_text_blocks)
 
     merged_blocks = merge_detections(img, blocks)
     if config.debug_merge:
@@ -60,6 +61,8 @@ def _run_pipeline(
 
     if cleaned_page is not None:
         cleaned_page = inpainter.restore(cleaned_page, img, grouped_blocks, blocks)
+        if config.translate_art_text:
+            cleaned_page = replace_art_text(cleaned_page, art_text_blocks)
         result = insert_text(cleaned_page, merged_blocks)
         if config.debug_insertion:
             debug_insertion(img, result)

@@ -54,10 +54,9 @@ def debug_bold(
     _show_debug("Bold", overlay, height)
 
 
-def debug_translation(raw_response: str, blocks: list[dict]):
-    print(f"Raw LLM response:\n{raw_response}")
+def _format_blocks(blocks: list[dict]) -> str:
     text = json.dumps(blocks, ensure_ascii=False, indent=2)
-    text = re.sub(
+    return re.sub(
         r"\[\n( *-?\d+,\n)* *-?\d+\n *\]",
         lambda m: (
             "["
@@ -66,7 +65,16 @@ def debug_translation(raw_response: str, blocks: list[dict]):
         ),
         text,
     )
-    print(f"Filtered blocks:\n{text}")
+
+
+def debug_translation(
+    raw_response: str,
+    blocks: list[dict],
+    art_text_blocks: list[dict],
+):
+    print(f"Raw LLM response:\n{raw_response}")
+    print(f"Translated blocks:\n{_format_blocks(blocks)}")
+    print(f"Art text blocks:\n{_format_blocks(art_text_blocks)}")
 
 
 def debug_grouping(
@@ -110,6 +118,22 @@ def debug_merge(
 
 def debug_inpaint(inpainted: np.ndarray, height: int = 720):
     _show_debug("Inpaint", inpainted, height)
+
+
+def _resize_to_height(img: np.ndarray, height: int) -> np.ndarray:
+    h, w = img.shape[:2]
+    if h == height:
+        return img
+    return cv2.resize(img, (max(1, int(w * height / h)), height))
+
+
+def debug_art_text(index: int, sent: np.ndarray, returned: np.ndarray):
+    height = max(sent.shape[0], returned.shape[0])
+    sent_r = _resize_to_height(sent, height)
+    returned_r = _resize_to_height(returned, height)
+    divider = np.full((height, 8, 3), 255, dtype=np.uint8)
+    side_by_side = np.hstack([sent_r, divider, returned_r])
+    _show_debug(f"Art text {index} (sent | returned)", side_by_side)
 
 
 def debug_insertion(before: np.ndarray, after: np.ndarray, height: int = 720):

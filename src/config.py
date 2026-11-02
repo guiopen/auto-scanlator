@@ -17,6 +17,7 @@ class Config:
     debug_inpaint: bool = False
     debug_insertion: bool = False
     debug_bold: bool = False
+    debug_art_text: bool = False
     word_gap_ratio: float = 0.25
     bold_depth_power: float = 1.5
     char_min_area: int = 4
@@ -29,6 +30,13 @@ class Config:
     llm_api_key: str = ""
     llm_model: str = ""
     llm_extra_parameters: dict = field(default_factory=dict)
+    translate_art_text: bool = False
+    art_text_api_url: str = "https://openrouter.ai/api/v1/images"
+    art_text_api_key: str = ""
+    art_text_model: str = "qwen/qwen-image-2.1-turbo"
+    art_text_seed: int = 0
+    art_text_n: int = 1
+    art_text_resolution: str = "1K"
     font_min_size: int = 1
     font_max_size: int = 999
     text_padding_h: float = 0.05

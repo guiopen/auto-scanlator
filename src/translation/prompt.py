@@ -11,57 +11,48 @@ _SYSTEM_PROMPT_TEMPLATE = Template(
     "The <b> and </b> tags are formatting markers, not part of the text content.\n"
     "\n"
     "The comic page is written in $source_lang and must be translated to $target_lang.\n"
+    "The OCR is not perfect: when translating, always rely on what is actually written in the image.\n"
     "\n"
-    "The OCR detects two kinds of text:\n"
-    "1. Speech and narration: dialogue, narration boxes, and character thoughts\n"
-    "2. Art text: text that is part of the drawing rather than speech or narration, including:\n"
-    "- Sound effects (BOOM, POW, CRASH, BAM, ZAP, etc.)\n"
-    "- Street signs, traffic signs, store signs in the background\n"
-    "- Computer screens, monitors, panels with system text\n"
-    "- License plates, posters, advertisements on walls\n"
-    "- Chapter titles or volume numbers that are part of the page design\n"
-    "- Artist names, copyright notices, publisher logos\n"
-    "- Background text on objects (clothing labels, book spines, food packaging)\n"
+    "Return one object for EVERY detected block, with these fields:\n"
+    '- "block": the block index\n'
+    '- "translate": true if the block should be translated, false otherwise. Return false for OCR noise, numbers or symbols standing alone, unreadable fragments cut off by the edge of the panel, and text that stays identical in $target_lang ("BOOOM", "haha")\n'
+    '- "art_text": true if the block is part of the drawing rather than speech or narration, false otherwise. Art text includes:\n'
+    "  - Sound effects (BOOM, POW, CRASH, BAM, ZAP, etc.)\n"
+    "  - Street signs, traffic signs, store signs in the background\n"
+    "  - Computer screens, monitors, panels with system text\n"
+    "  - License plates, posters, advertisements on walls\n"
+    "  - Chapter titles or volume numbers that are part of the page design\n"
+    "  - Artist names, copyright notices, publisher logos\n"
+    "  - Background text on objects (clothing labels, book spines, food packaging)\n"
+    '- "translated_text": the translation in $target_lang, or "" when "translate" is false\n'
     "\n"
-    "IMPORTANT: The OCR also detects things that SHOULD NOT be translated:\n"
-    "- Drawing details or noise the OCR mistook for letters\n"
-    "- Numbers, symbols, or proper nouns standing alone\n"
-    "- Text that already works in $target_lang without changes, such as sound effects or interjections written the same way (\"BOOOM\", \"tok\", \"haha\")\n"
-    "- Word fragments cut off by the edge of the panel where the full word cannot be read\n"
-    "\n"
-    'The OCR can also misread text: merged words, missing letters, fragmented lines, or garbled characters. Always cross-check with the image itself, and use the real text read from the image, not the OCR transcription, to decide whether the block is translated or omitted. Only correct OCR detection errors; never "fix" intentional author style, slang, dialect, or deliberate misspellings. Never return a block just to correct its OCR text, because correcting the text is only a step before translating it.\n'
-    "\n"
-    "Your task:\n"
-    "1. Completely IGNORE any block that should not be translated\n"
-    "2. Translate every remaining block, both speech and art text, as a cohesive text (not line by line)\n"
-    '3. Mark with "art_text": true every returned block that is art text\n'
-    "\n"
-    "CRITICAL: Do NOT return blocks for text that should not be translated. Simply omit them entirely.\n"
-    "Only return blocks for text that genuinely needs translation, using only indices from the input list.\n"
-    "\n"
-    "Return ONLY a JSON array of blocks:\n"
+    "Return ONLY a JSON array:\n"
     "[\n"
     "  {\n"
     '    "block": 0,\n'
-    '    "translated_text": "Natural translation of the entire block"\n'
+    '    "translate": true,\n'
+    '    "art_text": false,\n'
+    '    "translated_text": "Natural translation of the block"\n'
     "  },\n"
     "  {\n"
     '    "block": 1,\n'
+    '    "translate": true,\n'
     '    "art_text": true,\n'
     '    "translated_text": "Natural translation of the text"\n'
+    "  },\n"
+    "  {\n"
+    '    "block": 2,\n'
+    '    "translate": false,\n'
+    '    "art_text": false,\n'
+    '    "translated_text": ""\n'
     "  }\n"
     "]\n"
     "\n"
-    'Include "art_text": true only on art text blocks; omit the field on speech and narration blocks.\n'
-    "\n"
     "Rules:\n"
-    "- translated_text should be natural and fluent, not literal word-by-word\n"
-    "- If the original text spans multiple lines in a bubble, translate it as continuous prose\n"
-    "- Never return a block whose translation would be identical to the original text; omit the block instead\n"
-    "- translated_text must always be written in $target_lang; never return text in $source_lang just to fix an OCR error\n"
-    "- Never translate personal names, place names, brands, or work titles: they must be kept exactly as written\n"
-    "- Descriptive labels on objects, names of items made of common words (colors, elements, warnings), store types and signs must be translated to $target_lang\n"
-    "- Preserve stylistic text devices in the translation: censored words must stay censored (never write out the real word), dashes or underscores indicating hesitation or interruption must be kept, and repeated punctuation (!!!, ???, !?) must be preserved\n"
-    "- Bold words wrapped in <b> and </b> must remain wrapped in <b> and </b> in the translation, around the word or phrase that corresponds to them. Never add <b> and </b> around words that are not marked, and never remove existing markers\n"
-    "- Preserve the case of the original characters in the translation: any character uppercase in the original must stay uppercase, and lowercase must stay lowercase\n"
+    "- translated_text must be natural and fluent in $target_lang, not literal word-by-word\n"
+    "- If the original text spans multiple lines, translate it as continuous prose\n"
+    "- Keep proper nouns (character names, place names, brands, work titles) as written, while translating the rest of the text around them\n"
+    "- Preserve stylistic text devices: censored words stay censored, dashes or underscores for hesitation or interruption are kept, and repeated punctuation (!!!, ???, !?) is preserved\n"
+    "- Bold words wrapped in <b> and </b> must remain wrapped in <b> and </b> around the corresponding translated words; never add or remove markers\n"
+    "- Preserve the case of the original characters: uppercase stays uppercase, lowercase stays lowercase\n"
 )
