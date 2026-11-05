@@ -1,10 +1,629 @@
+\documentclass[
+    12pt,
+    openright,
+    oneside,
+    a4paper,
+    english,
+    brazilian
+]{abntex2}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{indentfirst}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{microtype}
+\usepackage[alf]{abntex2cite}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\renewcommand{\ABNTEXchapterfont}{\bfseries}
+\renewcommand{\ABNTEXsectionfont}{\bfseries}
+\renewcommand{\ABNTEXsubsectionfont}{\bfseries}
+
+%% Marcações de revisão - Retirar na versão final
+\newcommand{\attention}[1]{\textcolor{red}{#1}} 
+\newcommand{\propFileto}[1]{\textcolor{blue}{#1}} 
+\newcommand{\propGuilheme}[1]{\textcolor{magenta}{#1}}
+
+\renewcommand{\chapnumfont}{\large\bfseries}
+\renewcommand{\chaptitlefont}{\large\bfseries}
+\setsecheadstyle{\normalsize\bfseries}
+\setsubsecheadstyle{\normalsize\bfseries}
+\setsubsubsecheadstyle{\normalsize\bfseries}
+\setlength{\parskip}{6pt}
+
+\titulo{Auto Scanlator: Sistema Inteligente para Tradução e Letreiramento Automatizados de Histórias em Quadrinhos}
+\autor{Guilherme do Amaral Alves}
+\local{Florianópolis}
+\data{2027/2}
+\orientador{Prof. Renato Fileto}
+\instituicao{Universidade Federal de Santa Catarina}
+\tipotrabalho{Trabalho de Conclusão de Curso}
+\preambulo{Trabalho de conclusão de curso apresentado ao Departamento de Informática e Estatística da Universidade Federal de Santa Catarina como requisito parcial para a obtenção do grau de Bacharel em Sistemas de Informação.}
+
+\begin{document}
+\selectlanguage{brazil}
+\frenchspacing
+
+\imprimircapa
+\imprimirfolhaderosto
+
+\begin{folhadeaprovacao}
+  \begin{center}
+    {\ABNTEXchapterfont\large\imprimirautor}
+    \vspace*{\fill}
+    \begin{center}
+      \ABNTEXchapterfont\bfseries\Large\imprimirtitulo
+    \end{center}
+    \vspace*{\fill}
+    \hspace{.45\textwidth}
+    \begin{minipage}{.5\textwidth}
+      \imprimirpreambulo
+    \end{minipage}
+    \vspace*{\fill}
+  \end{center}
+  \begin{center}
+    Orientador: \imprimirorientador
+  \end{center}
+  \vspace*{\fill}
+  \begin{center}
+    Banca examinadora:
+  \end{center}
+  \vspace*{\fill}
+  \rule{8cm}{0.4pt}
+  \vspace*{\fill}
+  \rule{8cm}{0.4pt}
+  \vspace*{\fill}
+\end{folhadeaprovacao}
+
+\begin{resumo}
+Os sistemas atuais de tradução automatizada de histórias em quadrinhos tratam todo o texto detectado na imagem de forma padronizada durante o letreiramento, etapa de inserção do texto traduzido na página, descartando o negrito usado nas falas para indicar ênfase e volume de voz e apagando elementos textuais que fazem parte do próprio desenho, como onomatopeias e textos escritos sobre objetos da cena (a exemplo de placas e fachadas), para sobrescrevê-los com tipografia comum. Para resolver esse problema, este trabalho propõe o desenvolvimento do Auto Scanlator, um sistema de tradução automatizada de histórias em quadrinhos com foco na preservação do negrito no texto de fala e narração e na detecção de onomatopeias e de textos escritos sobre objetos da cena para mantê-los intactos na imagem ou recriá-los opcionalmente com modelo de difusão. O sistema organiza-se em uma pipeline sequencial que realiza a detecção e o reconhecimento óptico do texto de cada página, remove o texto original por inpainting, mede a espessura dos caracteres por visão computacional para identificar palavras em negrito, emprega um modelo de linguagem multimodal com acesso à imagem da página para traduzir e classificar os blocos de texto, e executa o letreiramento inserindo a tradução com o negrito preservado. O sistema utiliza exclusivamente tecnologias livres e executa sua pipeline principal localmente em hardware convencional. Como resultados parciais, foram concluídas a análise comparativa de cinco ferramentas de código aberto, a implementação completa do software e a definição do protocolo experimental. Até o final do trabalho, espera-se concluir a anotação do conjunto de dados padrão-ouro e avaliar quantitativamente a detecção e a preservação do negrito e a detecção de onomatopeias e de textos escritos sobre objetos da cena.
+
+\textbf{Palavras-chave}: Histórias em quadrinhos. Tradução automática. Letreiramento. Visão computacional. Modelos de linguagem multimodais.
+\end{resumo}
+
+\pdfbookmark[0]{\listfigurename}{lof}
+\listoffigures*
+\cleardoublepage
+
+\pdfbookmark[0]{\listtablename}{lot}
+\listoftables*
+\cleardoublepage
+
+\pdfbookmark[0]{\contentsname}{toc}
+\tableofcontents*
+\cleardoublepage
+
+\textual
+
+\chapter{INTRODUÇÃO}
+\label{cap:introducao}
+
+Os quadrinhos estão entre os meios de expressão cultural de maior alcance no mundo contemporâneo, manifestando-se em tradições diversas, como o comic norte-americano, o quadrinho franco-belga, o mangá japonês, o webtoon coreano e o manhua chinês, cada uma com características próprias de linguagem visual e narrativa\footnote{Uma visão geral dessas tradições e formatos pode ser consultada em \url{[https://en.wikipedia.org/wiki/Comic_book](https://en.wikipedia.org/wiki/Comic_book)}.}. Para alcançar públicos fora de seu idioma original, no entanto, essas obras dependem de tradução, um processo lento, custoso e especializado que limita quais delas se tornam acessíveis em outros idiomas. Essa dependência chega a ser tratada como questão estratégica de política pública, como ocorre na Coreia do Sul, onde a Korea Creative Content Agency já propõe o uso de inteligência artificial e sistemas de tradução automatizada como solução para o aumento de produtividade no processo de tradução \cite{kocca2025kwebtoons}. 
+
+Esse interesse institucional em automatizar a tradução, contudo, esbarra no fato de que o texto nos quadrinhos está integrado à própria imagem, além de transmitir o conteúdo verbal. \citeonline{eisner1985comics} mostra que o letreiramento, etapa em que o texto é inscrito na página, quando tratado graficamente e a serviço da história, funciona como uma extensão da arte, transmitindo o clima da cena e a sugestão de som. A forma com que uma fala é grafada altera o que ela comunica, pois o uso seletivo do negrito cumpre papel prosódico\footnote{A prosódia compreende as características sonoras da fala, como entonação, ritmo, acento e volume de voz.} ao dar ênfase, indicar volume de voz e antecipar o sentido do diálogo, de modo que o leitor consiga captar a ideia principal da fala apenas pelas palavras destacadas, assim como o contorno do balão informa o caráter do que está dentro dele \cite{eisner1985comics, mccloud1993understanding} (Seção~\ref{sec:tipografia}). Além das falas dos personagens e dos quadros de narração, a página contém onomatopeias, que representam sons graficamente na cena, e textos escritos sobre objetos da cena, como placas e fachadas, dois elementos que fazem parte do próprio desenho e cuja adaptação exige recriar o traço e a perspectiva da arte (Seções~\ref{sec:quadrinhos} e~\ref{sec:letreiramento}). Disso decorre que traduzir quadrinhos exige preservar a integridade visual da página junto com o sentido verbal. Uma tradução automática que ignore o negrito das falas (Figura~\ref{fig:pagina-sem-preservacao}) ou que apague onomatopeias e textos integrados ao cenário para sobrescrevê-los com tipografia comum (Figura~\ref{fig:texto-em-cena-sem-preservacao}) compromete a leitura pretendida pelo autor e descaracteriza a obra original.
+
+\begin{figure}[htb]
+    \caption{Página traduzida sem a preservação do negrito do texto}
+    \label{fig:pagina-sem-preservacao}
+    \includegraphics[width=\textwidth]{imagens/traducao_sem_preservacao.png}
+    \fonte{Quadrinho \textit{Homem-Grilo: Mais Rápido que uma Bala}, de Cadu Simões, traduzido do português para o inglês usando o software \textit{Manga Image Translator}.}
+\end{figure}
+
+\begin{figure}[htb]
+    \caption{Página traduzida com o texto escrito sobre objeto da cena letreirado como fala, sem tratamento gráfico adequado}
+    \label{fig:texto-em-cena-sem-preservacao}
+    \centering
+    \includegraphics[width=\linewidth]{imagens/texto_em_cena_sem_preservacao.png}
+    \fonte{Quadrinho \textit{Pepper\&Carrot}, episódio 3, \textit{The Secret Ingredients}, de David Revoy (2014), traduzido do inglês para o português usando o software \textit{Manga Image Translator}.}
+\end{figure}
+
+Nas pesquisas e ferramentas que automatizam esse processo, porém, o cuidado visual restringiu-se à remoção do texto original, impulsionada pelo avanço dos modelos de inpainting, técnica de preenchimento que reconstrói o desenho encoberto pelas letras \cite{quan2024deeplearningbasedimagevideo} (Seção~\ref{sec:inpainting}). Como o reconhecimento óptico converte as imagens das palavras em texto puro sem registrar a espessura dos traços e os detectores de texto capturam indistintamente qualquer elemento verbal da página, a literatura e as ferramentas de código aberto acabam ignorando essas particularidades no letreiramento. Todas as ferramentas analisadas neste trabalho inserem o texto traduzido com espessura de traço uniforme, perdendo o negrito do original, e nenhuma delas distingue conjuntamente as onomatopeias e os textos escritos sobre objetos da cena, apagando e sobrescrevendo elementos gráficos do cenário como se fossem falas comuns (Seção~\ref{sec:ferramentas}).
+
+Diante desse cenário, este trabalho propõe o desenvolvimento do Auto Scanlator, um sistema de tradução automatizada de histórias em quadrinhos que preserva o negrito do texto de fala e narração no letreiramento e mantém intactos na página os textos escritos sobre objetos da cena e as onomatopeias. O sistema é construído exclusivamente com tecnologias livres e executa todas as etapas localmente em hardware convencional (Seção~\ref{sec:escopo}), incluindo o modelo de linguagem multimodal empregado na tradução e na filtragem de blocos. A Figura~\ref{fig:pipeline} apresenta uma visão geral da pipeline proposta, detalhada no Capítulo~\ref{cap:auto-scanlator}.
+    
+\section{PROBLEMA DE PESQUISA}
+\label{sec:problema}
+
+O baixo interesse acadêmico pelo letreiramento na tradução automática de quadrinhos reflete a subvalorização histórica dessa etapa na própria indústria editorial \cite{assis2015letterer}. O levantamento de \citeonline{vivoli2025missingpiecevisionlanguage} cataloga 31 tarefas de visão e linguagem aplicadas a quadrinhos sem incluir o letreiramento, tratando a tradução como uma tarefa de saída puramente textual, e \citeonline{lippmann-etal-2025-context} afirmam desconhecer estudos que o realizem de forma automática. Mesmo as pipelines automáticas completas propostas na literatura \cite{hinami2021fullyautomatedmangatranslation, narasimhan2025crossing} limitam-se a encaixar o texto traduzido na região original com peso uniforme, enquanto a ferramenta assistida de \citeonline{xu2020computeraided} depende de marcação manual do usuário para aplicar formatação (Seção~\ref{sec:pipelines-completas}). Da mesma forma, nenhuma das ferramentas de código aberto analisadas neste trabalho preserva o negrito do texto original (Seção~\ref{sec:ferramentas}). Restituir esse atributo na página traduzida exige superar o descarte da formatação visual pelo reconhecimento óptico, medindo a espessura dos caracteres diretamente na imagem sob variações de fonte e fundo, além de transferir a marcação de ênfase para os termos equivalentes no idioma de destino, cuja tradução frequentemente altera a ordem e a quantidade de palavras da frase antes da renderização tipográfica (Seções~\ref{sec:tipografia} e~\ref{sec:as-atributos}).
+
+Além disso, os sistemas atuais falham em lidar com a diversidade de tipos de texto de uma página (Seção~\ref{sec:quadrinhos}). Como os detectores ópticos capturam qualquer texto visível na imagem, as ferramentas de código aberto tratam os blocos detectados de forma genérica, apagando onomatopeias e textos escritos sobre objetos da cena para sobrescrevê-los com a mesma tipografia usada nos balões de fala, o que danifica a arte original (Seções~\ref{sec:letreiramento} e~\ref{sec:ferramentas}). Evitar essa descaracterização exige traduzir esses elementos de forma especializada, recriando o estilo gráfico do desenho, ou mantê-los intactos no idioma original, prática editorial comum para proteger os desenhos \cite{assis2016especificidades, leitao2010estrategias}. Ambas as abordagens dependem, antes de tudo, de distinguir esses dois tipos de texto das falas e da narração. Essa separação não se resolve apenas pela detecção de contornos de balões, pois falas e narrações também ocorrem soltas na cena e textos escritos sobre objetos do cenário frequentemente apresentam grafia regular semelhante à de diálogos. No entanto, como a tradução contextualizada de quadrinhos já se beneficia do envio da imagem da página a um modelo de linguagem multimodal \cite{lippmann-etal-2025-context}, essa mesma chamada pode ser aproveitada para que o modelo, observando a cena, filtre as onomatopeias e os textos escritos sobre objetos da cena simultaneamente à tradução e ao reposicionamento do negrito, dispensando o treinamento e a execução de classificadores visuais adicionais no hardware local (Seções~\ref{sec:escopo} e~\ref{sec:as-traducao}).
+
+O problema de pesquisa deste trabalho consiste, portanto, em investigar a viabilidade de integrar, em uma pipeline local de tradução de quadrinhos, a detecção por visão computacional e a preservação do negrito nas palavras traduzidas de fala e narração e o aproveitamento do modelo de linguagem multimodal para detectar onomatopeias e textos escritos sobre objetos da cena, mantendo-os intactos na página. Disso decorre a pergunta que orienta a investigação.
+
+\textbf{Pergunta de pesquisa:} é possível desenvolver uma pipeline automatizada de tradução de quadrinhos que detecte o negrito do texto de fala e narração por visão computacional, o preserve no letreiramento do texto traduzido e empregue um modelo de linguagem multimodal para detectar onomatopeias e textos escritos sobre objetos da cena?
+
+Para respondê-la, o trabalho adota duas hipóteses, verificadas segundo os critérios de avaliação definidos no Capítulo~\ref{cap:avaliacao}.
+
+\begin{description}
+    \item[H1.] O negrito do texto de fala e narração pode ser detectado por visão computacional e preservado no letreiramento do texto traduzido.
+    \item[H2.] Um modelo de linguagem multimodal pode ser usado para detectar onomatopeias e textos escritos sobre objetos da cena em uma página de quadrinhos.
+\end{description}
+
+\subsection{Objetivos}
+
+O objetivo geral deste trabalho é desenvolver e avaliar o Auto Scanlator, uma pipeline completa de tradução automatizada de quadrinhos capaz de preservar o negrito do texto de fala e narração no letreiramento e de detectar onomatopeias e textos escritos sobre objetos da cena para mantê-los intactos na página. Para alcançá-lo, o trabalho tem os seguintes objetivos específicos:
+
+\begin{enumerate}
+%\begin{enumerate}[label=\alph*)]
+    \item Analisar comparativamente as ferramentas de código aberto para tradução de quadrinhos, caracterizando suas abordagens de detecção, tradução e letreiramento, bem como o tratamento dado ao negrito e aos diferentes tipos de texto da página;
+    \item Desenvolver uma pipeline local que encadeie a detecção e o reconhecimento óptico do texto, a remoção do texto original por inpainting, a identificação do negrito, a tradução e filtragem de blocos e o letreiramento da página traduzida;
+    \item Implementar um algoritimo de visão computacional para detectar as palavras em negrito no texto original e restituir esse destaque nas palavras correspondentes durante o letreiramento da tradução;
+    \item Empregar um modelo de linguagem multimodal para realizar a tradução contextualizada das falas e da narração e detectar onomatopeias e textos escritos sobre objetos da cena, filtrando-os para que permaneçam intactos na imagem;
+    \item Construir um conjunto de dados anotado como padrão-ouro e aplicar sobre ele um protocolo de avaliação que mensure separadamente a detecção do negrito por visão computacional, a preservação do negrito na tradução, a detecção de onomatopeias e a detecção de textos escritos sobre objetos da cena, permitindo verificar as hipóteses formuladas na Seção~\ref{sec:problema};
+    \item Disponibilizar a ferramenta resultante em código aberto, operável por linha de comando e acompanhada de documentação.
+\end{enumerate}
+
+\section{ESCOPO E DELIMITAÇÕES}
+\label{sec:escopo}
+
+O sistema recebe as imagens das páginas de um quadrinho e devolve as mesmas páginas com o texto de fala e narração substituído pela tradução e com as onomatopeias e os textos escritos sobre objetos da cena intactos, executando localmente a pipeline detalhada no Capítulo~\ref{cap:auto-scanlator}. Neste trabalho, a execução em hardware convencional tem como referência um notebook com sistema operacional Linux, processador Intel Core i5 de 11ª geração com quatro núcleos, 12GB de memória RAM DDR4 e sem placa de vídeo dedicada. A interação ocorre por linha de comando. O desenvolvimento de interface gráfica não integra o escopo, assim como a otimização de desempenho computacional, de modo que o tempo de processamento das páginas não constitui objeto de avaliação.
+
+Quanto aos quatro tipos de texto apresentados na Seção~\ref{sec:quadrinhos}, no modo padrão de operação o sistema traduz os diálogos e os comentários e narração, que juntos compõem o texto de fala e narração da página, e detecta as onomatopeias e os textos escritos sobre objetos da cena com o modelo de linguagem multimodal para mantê-los intactos na página (Seção~\ref{sec:letreiramento}). No letreiramento de fala e narração, o texto traduzido é desenhado em preto com contorno branco ou em branco com contorno preto, conforme o contraste com o fundo da região, ficando a preservação da cor de preenchimento e da borda do texto original para trabalhos futuros. Como recurso adicional para demonstrar o potencial da detecção realizada pelo modelo de linguagem multimodal, o software também implementa a tradução e recriação gráfica das onomatopeias e dos textos escritos sobre objetos da cena por meio de um modelo de difusão para edição de imagens (Seção~\ref{sec:as-difusao}). Contudo, como o menor modelo de difusão aberto atual capaz de realizar essas alterações com qualidade é o Qwen-Image-2.1-Turbo \cite{qwenimage21turbo}, cuja execução é inviável em CPU e exige placa de vídeo dedicada, essa funcionalidade é disponibilizada em caráter opcional e não integra o protocolo de avaliação quantitativa (Capítulo~\ref{cap:avaliacao}). Essa delimitação concentra a avaliação na preservação do negrito e na detecção de onomatopeias e de textos escritos sobre objetos da cena em hardware convencional, lacunas ainda não atendidas pelas ferramentas de código aberto (Seção~\ref{sec:ferramentas}) e que constituem a base necessária tanto para preservar a arte original quanto para viabilizar o uso de modelos de difusão.
+
+Ficam excluídas do escopo obras com texto em orientação vertical, caso típico do mangá japonês, restringindo-se o sistema a quadrinhos com escrita horizontal.
+
+Respeitada essa restrição, o sistema admite qualquer par de idiomas suportado pelo componente de reconhecimento óptico e pelo modelo de linguagem multimodal. A avaliação, contudo, restringe-se ao par português--inglês.
+
+\chapter{FUNDAMENTAÇÃO TEÓRICA}
+
+Este capítulo apresenta os conceitos necessários para a compreensão do sistema proposto, organizados em dois blocos. O primeiro caracteriza o domínio da aplicação, abrangendo as histórias em quadrinhos, o letreiramento e a tipografia (Seções~\ref{sec:quadrinhos} a~\ref{sec:tipografia}). O segundo aborda a tradução e as técnicas computacionais empregadas na pipeline e em sua validação, compreendendo os modelos de linguagem multimodais, a detecção e o reconhecimento óptico de texto e o inpainting (Seções~\ref{sec:traducao} a~\ref{sec:inpainting}).
+
+\section{HISTÓRIAS EM QUADRINHOS}
+\label{sec:quadrinhos}
+
+Os quadrinhos são uma narrativa contada por imagens dispostas em sequência, com a fala dos personagens incorporada a elas na forma de balões. O balão faz a fala participar do mesmo modo visual das imagens, permitindo ao leitor ver e ler as palavras dos personagens simultaneamente às suas ações, enquanto nas demais artes gráficas os personagens restringem-se ao gesto e à pantomima. Os quadrinhos tecem palavra e imagem para contar uma história, em uma combinação na qual nenhuma das duas partes é suficiente sozinha \cite{harvey1994art}. Essa interdependência distingue os quadrinhos do cinema, que exibe o movimento diretamente em vez de reduzi-lo a momentos estáticos, da narrativa ilustrada, cujas imagens retratam passagens de um texto que existiria sem elas, e da literatura e das artes puramente pictóricas, que operam em apenas um desses modos \cite{harvey1994art}.
+
+\citeonline{borodo2016exploring} classifica o texto presente em uma página de quadrinhos em quatro tipos principais (Figura~\ref{fig:tipos-de-texto}):
+
+\begin{itemize}
+    \item \textbf{Diálogos}, correspondentes à fala dos personagens, dispostos geralmente dentro de balões ou, por vezes, soltos sobre a cena;
+    \item \textbf{Comentários e narração}, que conduzem a história por fora da voz dos personagens, inseridos em recordatórios\footnote{Caixas, em geral retangulares, utilizadas para inserir o texto do narrador ou situar o leitor no tempo e no espaço da cena.} ou nas margens dos quadros;
+    \item \textbf{Texto escrito sobre objetos da cena}, como placas, fachadas, títulos de jornais e nomes de estabelecimentos integrados ao desenho do cenário;
+    \item \textbf{Onomatopeias}, palavras desenhadas na cena para representar sons, como o impacto de um golpe ou o ruído de uma porta.
+\end{itemize}
+
+\begin{figure}[htb]
+    \caption{Os quatro tipos de texto de uma página de quadrinhos}
+    \label{fig:tipos-de-texto}
+    \centering
+    \includegraphics[trim={1.4cm 0 0 0}, clip, width=\linewidth]{imagens/tipos_de_texto.png}
+    \fonte{Quadrinho \textit{The Amazing Spider-Man}, capítulo 1.}
+\end{figure}
+
+Os diálogos e os comentários e narração compõem o texto de fala e narração da obra, enquanto o texto escrito sobre objetos da cena e as onomatopeias integram a própria arte do quadro, de modo que suas letras assumem valor tanto de desenho quanto de material linguístico \cite{assis2016especificidades, leitao2010estrategias}. Como o texto escrito sobre objetos da cena e as onomatopeias são desenhados em harmonia com os personagens, o cenário ou a ação visual, sua remoção e substituição por tipografia comum descaracterizam o desenho original \cite{leitao2010estrategias} (Seção~\ref{sec:letreiramento}), diferença de natureza visual e narrativa que fundamenta a distinção de tratamento adotada neste trabalho (Seção~\ref{sec:escopo}).
+
+Como todo texto em uma página de quadrinhos ocupa um espaço físico na arte, sua presença gráfica precede a leitura verbal e estabelece uma atmosfera antes mesmo que as palavras sejam decodificadas, subordinando o texto à imagem \cite{rota2004translationvisibility}. O estilo do letreiramento e o formato do balão comunicam emoção, tom de voz e ênfase \cite{mccloud1993understanding}. Por essa razão, traduzir quadrinhos requer atenção tanto ao conteúdo linguístico quanto à apresentação gráfica do texto na página, conceitos abordados nas duas seções seguintes.
+
+\section{LETREIRAMENTO}
+\label{sec:letreiramento}
+
+O letreiramento é a etapa da produção de quadrinhos em que o texto é inscrito na página, definindo a apresentação visual com que cada fala, narração, texto escrito sobre objetos da cena e onomatopeia chega ao leitor. Embora frequentemente encarado no mercado editorial como um processo meramente técnico em comparação ao roteiro e ao desenho, seu resultado interfere diretamente na leitura e na expressividade da obra \cite{assis2015letterer}.
+
 No processo de tradução editorial, o letreiramento parte de uma arte já finalizada e costuma ser executado por um profissional distinto do tradutor. O tradutor entrega um roteiro numerado na ordem de leitura e o letreirista o aplica à página, diagramando as falas nos balões e adaptando visualmente as onomatopeias e os textos escritos sobre objetos da cena para imitar o traço e a perspectiva do desenho original, tarefa que exige maior habilidade e tempo de produção por lidar com letras que têm valor de desenho \cite{assis2016especificidades, assis2018aprox, linsley2020letterer}. Como os arquivos das páginas costumam chegar com o texto original fundido à camada da imagem, cabe também ao letreirista apagá-lo e redesenhar a arte encoberta, retoque manual descrito pelos profissionais como uma das tarefas mais demoradas de todo o processo \cite{linsley2020letterer, gizmodo2025letterer, linsley2021jenten}. Tanto pela valorização artística dos quadrinhos quanto pelo ritmo de produção editorial, contudo, é prática comum evitar alterações nos desenhos da obra original, mantendo a grafia original desses elementos na ilustração para preservar a arte \cite{assis2016especificidades, leitao2010estrategias}.
 
 O ajuste do texto ao balão é mais restrito do que na produção original, porque a forma e a posição dos balões foram definidas para o idioma de partida \cite{jones2020mangalettering}. O letreiramento busca reproduzir a disposição do texto original \cite{linsley2021jenten} e se orienta por três restrições: a legibilidade do texto, a fidelidade a essa disposição e as normas da editora \cite{bovia2019lettering}. Na prática profissional, o texto é formatado para caber no balão, com quebras de linha e hifenização, e o encurtamento de uma fala pode ser pedido ao tradutor \cite{jones2020mangalettering}. O balão, por sua vez, é reformado e redimensionado para acomodar o novo volume de texto, alcance que chega a praticamente todos os balões de uma página \cite{piekos-hand-lettering, klein2021interview}.
 
 Nas pipelines automáticas, a etapa corresponde a renderizar o texto traduzido com fontes tipográficas digitais sobre a imagem já limpa, com tamanho e posição otimizados para a região de texto disponível \cite{lippmann-etal-2025-context}. Embora adequado para diálogos e comentários e narração, esse procedimento não reproduz o traço, o estilo e a perspectiva exigidos na adaptação de onomatopeias e textos escritos sobre objetos da cena \cite{assis2016especificidades, assis2018aprox, linsley2020letterer}, razão pela qual apagá-los e sobrescrevê-los com fontes de diálogo perde sua iconicidade gráfica\footnote{Propriedade pela qual a forma visual das letras imita o som ou o objeto físico que elas representam na cena.} e quebra a harmonia visual da cena \cite{leitao2010estrategias}. Na ausência de uma adaptação gráfica específica para esses dois tipos de texto, mantê-los intactos no idioma original evita a descaracterização do desenho e preserva a integridade visual do quadro \cite{assis2016especificidades, leitao2010estrategias}. O que a etapa manipula, na produção original ou na tradução, é a forma visual do texto, objeto da seção seguinte.
-}
 
-@misc{piekos-hand-lettering,
-  author       = {Piekos, Nate},
-  title        = {What Happened to Hand Lettering?},
+\section{TIPOGRAFIA}
+\label{sec:tipografia}
+
+A tipografia é a forma visual que a linguagem escrita assume \cite{lupton2004thinking}. Ela compreende a família tipográfica utilizada, os atributos visuais dos caracteres (como peso, estilo, tamanho, cor de preenchimento e borda) e a disposição espacial do bloco de texto (alinhamento, orientação e posição), escolhas que tornam a mensagem escrita legível e expressiva \cite{luna2018typography}.
+
+Entre os atributos dos caracteres, o peso tipográfico refere-se à espessura dos traços que formam as letras em relação à sua altura. A variante de maior espessura dentro de uma mesma família tipográfica constitui o negrito, empregado para criar contraste visual e hierarquia em relação ao texto regular \cite{lupton2004thinking}. No letreiramento de histórias em quadrinhos, a aplicação seletiva do negrito em palavras ou sílabas dentro de um balão cumpre papel prosódico, indicando ao leitor onde recai a ênfase da frase e sinalizando elevação no volume de voz do personagem \cite{eisner1985comics, mccloud1993understanding}. Segundo \citeonline{eisner1985comics}, o negrito deve ser empregado tanto a serviço do som quanto para antecipar a mensagem, de modo que o leitor consiga captar o sentido principal do diálogo apenas pelas palavras em negrito. A perda desse destaque na tradução, portanto, suprime tanto a entonação da fala quanto um guia visual de leitura da página.
+
+Já os atributos de disposição espacial subordinam-se à geometria da arte original na tradução de quadrinhos. Enquanto a posição e o ângulo de inclinação acompanham a região demarcada pelo texto de partida, o tamanho da fonte precisa ser recalculado no letreiramento para acomodar a variação de extensão verbal entre o idioma de origem e o de destino dentro do mesmo espaço físico (Seção~\ref{sec:letreiramento}).
+
+\section{TRADUÇÃO E MODELOS DE LINGUAGEM MULTIMODAIS}
+\label{sec:traducao}
+\label{sec:mllm}
+
+Nos quadrinhos, além da tradução editorial oficial, destaca-se a prática amadora em larga escala conhecida como scanlation, termo que combina digitalização (\textit{scan}) e tradução (\textit{translation}) para designar a tradução não autorizada de narrativas gráficas por fãs \cite{fabbretti2016use}. Impulsionados pela demanda por obras ainda não licenciadas fora de seu país de origem e pelas ferramentas digitais de edição e distribuição, grupos de fãs dividem entre si as etapas de limpeza da imagem, tradução e letreiramento \cite{lee2009between, fabbretti2016use}.
+
+No âmbito computacional, a tradução automática consiste na conversão de texto de um idioma para outro por sistemas automatizados. Essa tarefa tem sido crescentemente realizada por modelos de linguagem baseados na arquitetura Transformer \cite{vaswani2023attentionneed} treinados sobre grandes volumes de texto, denominados grandes modelos de linguagem (LLMs, na sigla em inglês) \cite{zhao2026surveylargelanguagemodels}. Capazes de seguir instruções em linguagem natural e aprender com exemplos fornecidos no prompt, esses modelos alcançam ganhos de qualidade na tradução ao aproveitar contextos amplos, como múltiplas frases ou páginas inteiras \cite{Gain_2026}.
+
+Os modelos de linguagem multimodais (MLLMs) estendem essa arquitetura ao integrar o processamento de outras modalidades, como imagens, mantendo um LLM como núcleo de raciocínio \cite{Yin_2024}. Com isso, o modelo interpreta o conteúdo visual diretamente em conjunto com o texto de entrada \cite{Yin_2024}. Na tradução de quadrinhos, essa capacidade permite reunir em uma única chamada ao MLLM a tradução das falas e da narração desambiguada pelo contexto visual da página, a transferência de marcações tipográficas de negrito para as palavras equivalentes no idioma de destino e a distinção visual entre o texto de fala e narração e as onomatopeias e os textos escritos sobre objetos da cena (Capítulo~\ref{cap:auto-scanlator}).
+
+\section{DETECÇÃO E RECONHECIMENTO ÓPTICO DE TEXTO}
+\label{sec:ocr}
+
+A detecção e o reconhecimento óptico de caracteres compõem as duas tarefas fundamentais da leitura automática de texto em imagens. A detecção identifica as regiões da imagem que contêm texto e delimita sua posição, enquanto o reconhecimento converte o conteúdo dessas regiões em caracteres legíveis por máquina \cite{long2020scenetextdetectionrecognition}. Ao contrário do texto digital, em que os caracteres já se encontram codificados, o texto presente em uma imagem precisa ser recuperado a partir dos pixels, sob variações de fonte, tamanho, orientação e fundo que tornam o problema substancialmente mais complexo \cite{long2020scenetextdetectionrecognition}.
+
+Tradicionalmente tratadas como etapas sequenciais e independentes, ambas as tarefas têm sido cada vez mais integradas em sistemas únicos que realizam detecção e reconhecimento em uma só passagem, abordagem que se consolidou como tendência da área com o avanço das técnicas baseadas em aprendizado profundo \cite{long2020scenetextdetectionrecognition}.
+
+\section{INPAINTING}
+\label{sec:inpainting}
+
+O inpainting é o preenchimento de regiões faltantes de uma imagem com conteúdo plausível. A prática vem da restauração manual de pinturas e fotografias danificadas e foi trazida ao processamento digital de imagens por \citeonline{10.1145/344779.344972}, com aplicações que vão da restauração de obras à remoção de objetos da cena. Na tradução de quadrinhos, o inpainting corresponde ao retoque que o letreirista faz manualmente na arte para remover o texto original antes de aplicar a tradução (Seção~\ref{sec:letreiramento}) \cite{linsley2020letterer}.
+
+Trata-se de um problema que admite múltiplas soluções plausíveis, em especial quando as regiões a preencher são grandes, e o avanço recente da área veio dos métodos baseados em aprendizado profundo \cite{quan2024deeplearningbasedimagevideo}.
+
+\chapter{TRABALHOS RELACIONADOS}
+\label{cap:trabalhos-relacionados}
+
+Este capítulo revisa a literatura e os sistemas relacionados à tradução automatizada de quadrinhos, organizados em três frentes. A primeira aborda as pipelines acadêmicas completas, que cobrem todo o percurso da página original à página traduzida, passando pela detecção e reconhecimento do texto, pela tradução, pela remoção do texto original e pelo letreiramento (Seção~\ref{sec:pipelines-completas}). A segunda examina os estudos dedicados exclusivamente à etapa de tradução contextualizada, que recebem o texto já reconhecido e devolvem apenas a tradução em forma textual, sem remover o texto original nem realizar o letreiramento (Seção~\ref{sec:traducao-contextualizada}). Por fim, a terceira analisa o código-fonte e a documentação das principais ferramentas de código aberto que executam a pipeline completa, nas versões indicadas nas referências, para contextualizar o estado atual das soluções disponíveis e situar as hipóteses deste trabalho (Seção~\ref{sec:ferramentas}).
+
+\section{PIPELINES COMPLETAS DE TRADUÇÃO DE QUADRINHOS}
+\label{sec:pipelines-completas}
+
+\citeonline{hinami2021fullyautomatedmangatranslation} apresentam o trabalho de referência da área, que os próprios autores descrevem como o primeiro sistema completo de tradução totalmente automatizada de mangá, traduzindo do japonês para o inglês e para o chinês. A principal contribuição é a tradução contextualizada multimodal. No mangá, a fala de um personagem costuma se dividir entre vários balões, e o japonês omite com frequência sujeito e verbo, o que impede traduzir cada balão isoladamente. Para obter esse contexto, o sistema detecta os quadros da página, atribui cada texto ao quadro com que ele mais se sobrepõe, estima a ordem de leitura por divisões recursivas da página, acertando a ordem em 91,9\% das 258 páginas testadas, e extrai de cada cena etiquetas semânticas, como a presença de uma personagem feminina, com o modelo illustration2vec. Os textos de um mesmo quadro são então concatenados, precedidos dessas etiquetas, e traduzidos de uma só vez por um modelo Transformer.
+
+Para treinar esse modelo, os autores constroem automaticamente um corpus paralelo a partir de volumes publicados em japonês e em inglês, alinhando as páginas correspondentes, estimando a máscara de cada balão e lendo o texto com um módulo de reconhecimento óptico próprio, treinado com cinco milhões de imagens sintéticas. O processo gerou cerca de quatro milhões de pares de sentenças sem anotação manual. Os autores também publicaram o OpenMantra, primeiro conjunto de avaliação para tradução de mangá, com 214 páginas de cinco séries traduzidas por tradutores profissionais. Na avaliação, leitores bilíngues atribuíram notas de 1 a 5 às páginas traduzidas, e não a sentenças isoladas, e o modelo que traduz por quadro superou com significância estatística o que traduz sentença por sentença, treinado no mesmo corpus. A pontuação BLEU \cite{papineni-etal-2002-bleu}, que compara sequências de palavras da tradução com as de uma referência humana, apontou o resultado inverso, porque a tradução por quadro reordena o texto entre os balões para acomodar a ordem das palavras em inglês, e os autores concluem que a métrica não é adequada para avaliar tradução de mangá. As etiquetas visuais corrigiram pronomes em exemplos pontuais, mas não produziram diferença estatisticamente significativa.
+
+Na pipeline completa de \citeonline{hinami2021fullyautomatedmangatranslation}, o detector é treinado especificamente para localizar balões de fala, deixando de fora textos situados fora de balões, e o texto reconhecido é traduzido pelo modelo treinado, removido da página com o modelo de inpainting EdgeConnect e, por fim, letreirado. O letreiramento limita-se a inserir o texto traduzido no tamanho e na posição que maximizam a fonte dentro da região original, sem identificar nem preservar o negrito das palavras, sendo a etapa descrita com menos detalhe e a única sem avaliação própria no artigo.
+
+\citeonline{xu2020computeraided}, em dissertação de mestrado defendida na Universidade de Pequim, desenvolve uma ferramenta de tradução de quadrinhos assistida por computador. O processo é conduzido por um tradutor humano, e a ferramenta o apoia em todas as etapas, com detecção das regiões de texto, reconhecimento óptico, sugestões de tradução automática, memória de tradução, glossário, remoção do texto original e letreiramento. A detecção combina regras sobre os componentes conexos da imagem binarizada com um classificador baseado em MobileNetV2 que separa regiões com e sem texto. Ao unir componentes vizinhos, o método verifica se há o contorno de um balão ou de um quadro entre eles, evitando juntar textos de balões distintos. Em 100 páginas de um subconjunto do Manga109, o método alcançou medida F de 0,666, com precisão de 0,621 e recall de 0,717. A remoção do texto gera a máscara dos caracteres por detecção de contornos e preenche a região com o método de inpainting de Telea, disponível no OpenCV.
+
+No letreiramento, a ferramenta de \citeonline{xu2020computeraided} permite configurar estilos globais por categoria de texto e oferece suporte à aplicação de negrito e itálico em palavras específicas por meio de marcações em sintaxe Markdown inseridas no texto traduzido. Tanto a seleção das regiões que devem ser traduzidas ou mantidas intactas quanto a marcação de negrito, contudo, dependem de intervenção manual do usuário. A avaliação quantitativa do trabalho restringe-se à detecção das regiões de texto e ao tempo de processamento, enquanto as demais etapas são demonstradas apenas em exemplos de uso.
+
+\citeonline{narasimhan2025crossing} propõem uma pipeline para traduzir manhwa do indonésio para o inglês, motivada pela escassez de recursos para esse par de idiomas. A pipeline encadeia modelos de uso geral ajustados ao domínio, empregando o YOLOv5xu ajustado em 538 imagens anotadas para detectar os balões de fala, o Tesseract para o reconhecimento óptico de cada balão recortado e o MarianMT ajustado com os corpora Identic e OpenSubtitles para a tradução, feita balão a balão. A tradução é então sobreposta à imagem com as bibliotecas OpenCV e Pillow, acomodada ao formato do balão, sem etapa descrita de remoção do texto original nem tratamento do negrito. Cada componente é avaliado separadamente, com F1 de 90,7\% na detecção, taxa de erro de caracteres de 3,1\% no reconhecimento e BLEU de 0,27 na tradução, e a página traduzida é analisada apenas por inspeção visual.
+
+Nos três trabalhos, portanto, não há detecção nem preservação automática do negrito no texto de fala e narração. \citeonline{hinami2021fullyautomatedmangatranslation} e \citeonline{narasimhan2025crossing} aplicam peso tipográfico uniforme no letreiramento, enquanto \citeonline{xu2020computeraided} exige que o usuário marque o negrito manualmente. Quanto aos demais tipos de texto, \citeonline{hinami2021fullyautomatedmangatranslation} e \citeonline{narasimhan2025crossing} restringem a detecção aos contornos de balões de fala, o que exclui falas e narrações sem contorno de balão e não distingue textos escritos sobre objetos da cena quando um detector de texto geral é utilizado, ao passo que \citeonline{xu2020computeraided} delega essa triagem ao operador humano. Nenhum dos trabalhos emprega modelos de linguagem multimodais para filtrar onomatopeias e textos escritos sobre objetos da cena nem avalia a preservação do negrito, lacunas que o Auto Scanlator busca preencher.
+
+\section{TRADUÇÃO CONTEXTUALIZADA DE QUADRINHOS}
+\label{sec:traducao-contextualizada}
+
+\citeonline{kaino-etal-2024-utilizing} estendem o contexto usado por \citeonline{hinami2021fullyautomatedmangatranslation}, que se limita ao balão anterior ou ao quadro do texto traduzido, para alcançar informação de fora do quadro. A primeira proposta concatena ao texto do quadro a traduzir o texto do quadro anterior, com dois tokens especiais que marcam a separação entre balões de um mesmo quadro e entre quadros distintos. A segunda insere no início da entrada tokens com atributos bibliográficos da obra (série, autor, editora, revista e gênero), coletados da Wikipédia e da enciclopédia online MangaPedia, para capturar o estilo de expressão característico de cada gênero, autor ou obra. Os modelos são Transformers treinados no corpus japonês--inglês construído por \citeonline{hinami2021fullyautomatedmangatranslation} e avaliados em 500 páginas de 50 séries, com BLEU e COMET \cite{rei-etal-2020-comet} calculados por quadro.
+
+Considerar o quadro anterior elevou o BLEU de 18,93, na tradução balão a balão, para 21,46, acima das duas abordagens contextuais de \citeonline{hinami2021fullyautomatedmangatranslation} (21,14 e 21,02), e o COMET de 0,761 para 0,790. Somar os cinco atributos bibliográficos levou o BLEU a 23,17, o maior valor do trabalho. A editora isolada não trouxe ganho, o que os autores atribuem ao fato de uma mesma editora publicar obras de gêneros e autores variados. Na análise, o quadro anterior permitiu recuperar sujeitos omitidos, como em uma fala em que apenas ele indicava que o sujeito era ``você'', e não ``eu''. O melhor resultado veio de um único quadro anterior, e incluir dois ou mais quadros piorou a tradução em relação a um só.
+
+\citeonline{yang2024llmmanga} apresentam o que descrevem como o primeiro estudo dedicado ao uso de grandes modelos de linguagem na tradução de mangá, com duas perguntas, se um LLM traduz mangá sem acesso a dados de treinamento do domínio e que tipos de contexto melhoram sua tradução. Os experimentos usam o OpenMantra, traduzindo do japonês para o inglês e para o chinês, e comparam o GPT-3.5 Turbo, sem exemplos no prompt, ao modelo de tradução multilíngue M2M100 em três tamanhos. Sobre o GPT-3.5, os autores testam três tipos de contexto, exemplos de tradução sorteados de outras obras do conjunto, as falas anterior e seguinte à traduzida e descrições textuais da página ou do quadro geradas pelo modelo multimodal LLaVA. A avaliação usa apenas métricas automáticas.
+
+Mesmo sem contexto, o GPT-3.5 superou todas as versões do M2M100 em todas as métricas, com BLEU de 9,77 contra 6,35 do melhor M2M100 na tradução para o inglês, e a maior versão do M2M100, com 12 bilhões de parâmetros, não superou a de 1,2 bilhão. Os exemplos de tradução trouxeram os maiores ganhos, mas sem relação direta com a quantidade, com os melhores resultados obtidos com seis exemplos para o inglês e quatro para o chinês. As falas vizinhas melhoraram todas as métricas no inglês e pioraram levemente no chinês. As descrições visuais tiveram impacto mínimo, por vezes levemente negativo. Nesse estudo, porém, o modelo que traduz não recebe a imagem, apenas a descrição textual produzida por outro modelo.
+
+\citeonline{lippmann-etal-2025-context} fornecem a imagem diretamente ao tradutor, usando o GPT-4 Turbo, um modelo de linguagem multimodal, para traduzir os trechos de texto de uma página recebendo também a própria página. Cada trecho corresponde ao conteúdo de um balão, de um recordatório ou de um agrupamento de texto solto. As abordagens comparadas variam a unidade de tradução, o contexto textual e o contexto visual. Entre elas estão traduzir cada trecho isoladamente ou a página inteira de uma vez, com ou sem a imagem da página, e uma variante que substitui o conteúdo dos balões na imagem por números na ordem de leitura, para que o modelo associe cada trecho ao seu balão sem precisar ler o japonês da imagem. Quatro abordagens de contexto longo acrescentam as páginas vizinhas, o volume inteiro com as traduções já feitas ou um resumo da história atualizado a cada página, ou ainda traduzem o volume inteiro em uma única chamada.
+
+A avaliação usa o OpenMantra para japonês--inglês e um novo conjunto japonês--polonês publicado pelos autores, com 400 páginas e 3.705 trechos de dois volumes de \textit{Love Hina} traduzidos profissionalmente, o maior conjunto de tradução de mangá até então. As abordagens são comparadas ao Google Tradutor e aos modelos de \citeonline{hinami2021fullyautomatedmangatranslation} e \citeonline{kaino-etal-2024-utilizing} com as métricas chrF, BERTScore, BLEURT e xCOMET, e cada configuração foi executada uma única vez, devido ao custo do modelo comercial. A melhor abordagem passa ainda por uma avaliação humana segundo o protocolo MQM (Multidimensional Quality Metrics), que pondera os erros encontrados por sua gravidade, conduzida por um único tradutor profissional sobre uma das obras do OpenMantra.
+
+No japonês--inglês, traduzir a página inteira superou traduzir trecho a trecho (xCOMET de 0,758 contra 0,716), e acrescentar a imagem melhorou as duas unidades, levando a tradução por página com imagem a 0,776, acima do Google Tradutor (0,729) e do modelo de \citeonline{kaino-etal-2024-utilizing} (0,670). A variante numerada obteve resultados praticamente iguais. O contexto além da página não melhorou a tradução, e traduzir o volume inteiro em uma única chamada deu o pior resultado entre as abordagens com imagem. No japonês--polonês, a imagem pouco alterou a tradução por página. Na avaliação humana, a tradução por página com imagem obteve pontuação de $-1{,}98$, melhor que a do Google Tradutor ($-4{,}25$) e abaixo da tradução oficial ($-1{,}31$), com menos erros leves e moderados que esta, mas mais erros críticos (160 contra 107). O letreiramento aparece apenas em apêndice, descrito como procedimento para trabalhos futuros, sem implementação.
+
+Nos três estudos, a qualidade da tradução aumenta quando o modelo recebe contexto adicional além do balão isolado, seja pelo quadro anterior, por metadados da obra, por exemplos no prompt ou pela imagem da página. Nos experimentos de \citeonline{lippmann-etal-2025-context}, a tradução da página inteira acompanhada de sua imagem obteve o melhor desempenho, sem ganho adicional ao expandir a entrada para múltiplas páginas. Todos esses trabalhos, contudo, encerram-se na geração do texto traduzido, partindo de regiões previamente anotadas nos conjuntos de avaliação. O Auto Scanlator baseia-se nos resultados de \citeonline{lippmann-etal-2025-context} ao adotar a página acompanhada de sua imagem como entrada do modelo de linguagem multimodal, mas estende o papel dessa chamada para que o modelo, além de traduzir as falas e a narração com apoio visual, reposicione as marcações de negrito nas palavras traduzidas correspondentes e identifique as onomatopeias e os textos escritos sobre objetos da cena para filtrá-los da pipeline (Capítulo~\ref{cap:auto-scanlator}).
+
+\section{FERRAMENTAS DE CÓDIGO ABERTO}
+\label{sec:ferramentas}
+
+O Manga Image Translator \cite{mangaimagetranslator}, distribuído sob a licença GPL-3.0, é escrito em Python e pode ser usado por linha de comando, como servidor FastAPI ou por uma interface web. Sua pipeline encadeia detecção (DBNet, CTD, CRAFT ou Paddle), reconhecimento óptico (48px, 48px\_ctc, 32px ou mocr), agrupamento das linhas detectadas, tradução, inpainting e renderização. A tradução pode ser feita por serviços remotos ou por modelos locais, entre eles NLLB, M2M100 e Sugoi. O foco declarado do projeto é o japonês, mas o reconhecimento óptico atende a vários sistemas de escrita, e o idioma de origem não é escolhido pelo usuário, sendo classificado automaticamente. A ferramenta exporta a página nos formatos XCF, PSD\footnote{Formatos de arquivo utilizados nos editores de imagem GIMP (XCF) e Photoshop (PSD).} e PDF por meio do GIMP, além das imagens sem o texto original, para edição manual.
+
+O Koharu \cite{koharu}, distribuído sob a licença Apache-2.0, é uma aplicação de desktop escrita em Rust com o framework Tauri e interface em Next.js. Sua pipeline tem quatro etapas, a detecção (RF-DETR Seg), o reconhecimento óptico (PaddleOCR-VL, Hayai, Manga OCR ou Baberu), a tradução, por LLM remoto ou local no formato GGUF\footnote{Formato de arquivo binário projetado para o armazenamento e o carregamento rápido de modelos de linguagem quantizados em execução local (\url{https://github.com/ggml-org/ggml/blob/master/docs/gguf.md}).}, e o inpainting (LaMa, AOT, FLUX.2 Klein ou RORem), e o letreiramento é composto no canvas do editor. O idioma de origem não é escolhido pelo usuário; o reconhecimento associa por padrão a etiqueta ja-JP aos blocos, mas a tradução é instruída a detectar o idioma de origem, de modo que a cobertura depende do reconhecedor escolhido. O idioma de destino é escolhido em um catálogo de 42 idiomas, cuja disponibilidade depende do provedor de tradução. A ferramenta inclui um editor completo e exporta arquivos PSD em camadas e CBZ\footnote{Formato de arquivo compactado (\textit{Comic Book Zip}) feito para leitura digital de quadrinhos.}.
+
+O BallonsTranslator \cite{ballonstranslator}, distribuído sob a licença GPL-3.0, é uma aplicação de desktop em Python com interface Qt, que também pode ser executada sem interface gráfica. Cada etapa pode ser ativada ou desativada separadamente, com detecção por CTD, YSG, CTBD ou Stariver, reconhecimento óptico por manga-ocr, mit48px, Paddle, o OCR do sistema operacional, Google Vision ou LLM, tradução por Google, DeepL, M2M100, Sugoi, Sakura ou LLM, este configurado por perfis OpenAI, Codex, LM Studio ou Ollama, e inpainting por cv2, PatchMatch, AOT, LaMa, Flux ou LLM. Os idiomas de origem dependem do detector e do reconhecedor escolhidos, e os de destino, do motor de tradução. O texto vertical só permanece vertical em japonês e chinês, e o coreano é forçado à horizontal. A ferramenta oferece edição WYSIWYG\footnote{Sigla para \textit{What You See Is What You Get} (O que você vê é o que você obtém), modalidade de interface em que o conteúdo é editado exibindo diretamente sua aparência final.} detalhada e exporta para LabelPlus\footnote{Ferramenta utilizada por grupos de scanlation para marcar a posição das falas nas imagens e vincular o roteiro traduzido.} e Photoshop.
+
+O Saber-Translator \cite{sabertranslator}, distribuído sob a licença GPL-3.0, é uma aplicação de desktop com servidor Flask executado localmente e interface em Vue, com pacotes prontos apenas para Windows. Sua pipeline inclui detecção (DBNet, CTD, YOLO ou SaberYOLO), reconhecimento óptico (manga-ocr, 48px, PaddleOCR, PaddleOCR-VL, Baidu ou modelo de linguagem multimodal), extração de cor, geração automática de glossário por LLM, tradução e reparo da imagem por LaMa ou por preenchimento com cor sólida. A tradução processa a página em lote ou, no modo HQ\footnote{Sigla para \textit{High Quality} (alta qualidade), denominação usada pela ferramenta para o modo de tradução multimodal.}, acompanhada da imagem. O foco é o par japonês--chinês, e o idioma de destino é praticamente fixo em chinês, sem seletor na interface. A ferramenta inclui ainda um leitor de biblioteca e uma extensão de navegador.
+
+O Comic Translate \cite{comictranslate}, distribuído sob a licença Apache-2.0, é uma aplicação de desktop em PySide6. A detecção usa o RT-DETR-v2, complementado por heurísticas sobre as linhas de texto e sua inclinação, e o reconhecimento óptico é escolhido conforme o sistema de escrita, com manga-ocr para o japonês, PP-OCR para os alfabetos latino e cirílico, o hangul e os caracteres han, e serviços remotos opcionais. A tradução é feita por LLMs, seja por GPT, Claude, Gemini e DeepSeek, acessados pelo serviço próprio do projeto, que exige login, seja por um serviço personalizado compatível com a API da OpenAI, que permite modelos locais. O inpainting na interface usa LaMa ou AOT, com o MI-GAN presente apenas no código. O idioma de origem é escolhido entre a detecção automática e 10 idiomas fixos, e o de destino entre 27. O código exige login em uma conta mesmo quando são usados modelos locais.
+
+A Tabela~\ref{tab:comparacao-ferramentas} compara as cinco ferramentas e o Auto Scanlator quanto à preservação do negrito e às escolhas de pipeline e de tradução. O tratamento dado às onomatopeias e aos textos escritos sobre objetos da cena é detalhado nas Tabelas~\ref{tab:comparacao-onomatopeias} e~\ref{tab:comparacao-texto-cena}.
+
+
+\begin{table}[htb]
+    \caption{Comparação entre as ferramentas de código aberto e o Auto Scanlator}
+    \label{tab:comparacao-ferramentas}
+    \centering
+    \footnotesize
+    \setlength{\tabcolsep}{3pt}
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{|p{2.9cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|p{1.9cm}|}
+        \hline
+        \textbf{Critério} & \textbf{Manga Image Translator} & \textbf{Koharu} & \textbf{Ballons\hspace{0pt}Translator} & \textbf{Saber-Translator} & \textbf{Comic Translate} & \textbf{Auto Scanlator} \\
+        \hline
+        \hline
+        \multicolumn{7}{|l|}{\textbf{Tipografia no letreiramento}} \\
+        \hline
+        Preserva negrito & Não & Não & Não & Não & Não & Sim \\
+        \hline
+        \hline
+        \multicolumn{7}{|l|}{\textbf{Pipeline e tradução}} \\
+        \hline
+        Remoção do texto original & LaMa, AOT, Stable Diffusion & LaMa, AOT, FLUX, RORem & LaMa, AOT, Flux, cv2, PatchMatch, LLM & LaMa, cor sólida & LaMa, AOT, MI-GAN & LaMa \\
+        \hline
+        Pode traduzir com LLM & Sim & Sim & Sim & Sim & Sim & Sim \\
+        \hline
+        Usa contexto visual & Restrito & Opcional & Opcional & Restrito & Opcional & Padrão \\
+        \hline
+        Contexto da tradução & Página ou páginas anteriores & Página & Página ou histórico & Página ou lote de páginas & Página ou contexto extra & Página \\
+        \hline
+    \end{tabular}
+    \fonte{elaborada pelo autor.}
+\end{table}
+
+Na etapa de letreiramento, nenhuma das cinco ferramentas analisadas detecta ou preserva automaticamente o negrito presente nas palavras do texto original, renderizando todo o bloco traduzido com peso tipográfico uniforme. Nas demais escolhas de arquitetura, as ferramentas convergem ao adotar o modelo LaMa para o inpainting e oferecer suporte a LLMs locais ou remotos na tradução. A unidade padrão de tradução é a página, com opções pontuais de contexto adicional, como páginas anteriores no motor ChatGPT do Manga Image Translator, histórico de conversa no BallonsTranslator e processamento em lotes no modo HQ do Saber-Translator. O envio da imagem da página como contexto visual, que elevou a qualidade da tradução nos experimentos de \citeonline{lippmann-etal-2025-context}, é opcional ou restrito nas cinco ferramentas, vindo desativado por padrão no BallonsTranslator e no Comic Translate e restrito a motores ou modos específicos no Manga Image Translator e no Saber-Translator. No Auto Scanlator, a tradução é sempre conduzida por um modelo de linguagem multimodal que recebe a imagem completa da página junto com os blocos de texto.
+
+Para as onomatopeias e para os textos escritos sobre objetos da cena, as ferramentas são classificadas em uma de três categorias, conforme o resultado sobre a imagem, e a coluna de mecanismo e condição registra o que altera esse resultado:
+
+\begin{itemize}
+    \item \textbf{A}: a região permanece com os pixels originais intactos;
+    \item \textbf{B}: o texto é apagado e redesenhado como texto comum;
+    \item \textbf{C}: o texto é apagado e redesenhado com tratamento gráfico que recria o efeito.
+\end{itemize}
+
+\begin{table}[htb]
+    \caption{Tratamento dado às onomatopeias pelas ferramentas de código aberto e pelo Auto Scanlator}
+    \label{tab:comparacao-onomatopeias}
+    \centering
+    \footnotesize
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{|p{3.5cm}|c|p{10.0cm}|}
+        \hline
+        \textbf{Ferramenta} & \textbf{Categoria} & \textbf{Mecanismo e condição} \\
+        \hline
+        \hline
+        Manga Image Translator & A & O prompt instrui a repetir o efeito sonoro e um filtro descarta blocos com tradução idêntica ao original. Cai em B se o motor traduzir o termo. \\
+        \hline
+        Koharu & A & O detector possui classe própria para onomatopeia e a exclui da pipeline. Cai em B se o detector a classificar como texto comum. \\
+        \hline
+        BallonsTranslator & A & O detector padrão (YSG) ignora onomatopeias. Cai em B se outro detector capturá-las sem o filtro opcional do OCR Stariver. \\
+        \hline
+        Saber-Translator & B & O prompt instrui a repetir o efeito sonoro, mas não há filtro de descarte, então o texto repetido é letreirado sobre a região limpa. \\
+        \hline
+        Comic Translate & B & Sem distinção para onomatopeias; todo bloco detectado é processado como texto de fala e narração. \\
+        \hline
+        Auto Scanlator & A (C opcional) & O MLLM identifica o bloco pela imagem da página; no modo padrão restaura os pixels originais (A) e no modo com modelo de difusão recria a arte traduzida (C). \\
+        \hline
+    \end{tabular}
+    \fonte{elaborada pelo autor.}
+\end{table}
+
+\begin{table}[htb]
+    \caption{Tratamento dado aos textos escritos sobre objetos da cena pelas ferramentas de código aberto e pelo Auto Scanlator}
+    \label{tab:comparacao-texto-cena}
+    \centering
+    \footnotesize
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{|p{3.5cm}|c|p{10.0cm}|}
+        \hline
+        \textbf{Ferramenta} & \textbf{Categoria} & \textbf{Mecanismo e condição} \\
+        \hline
+        \hline
+        Manga Image Translator & B & Sem distinção para texto escrito sobre objeto da cena; todo bloco detectado é processado como texto de fala e narração. \\
+        \hline
+        Koharu & B & Sem distinção para texto escrito sobre objeto da cena; todo bloco detectado é processado como texto de fala e narração. \\
+        \hline
+        BallonsTranslator & B & Sem distinção para texto escrito sobre objeto da cena; todo bloco detectado é processado como texto de fala e narração. \\
+        \hline
+        Saber-Translator & B & Sem distinção para texto escrito sobre objeto da cena; todo bloco detectado é processado como texto de fala e narração. \\
+        \hline
+        Comic Translate & B & Sem distinção para texto escrito sobre objeto da cena; todo bloco detectado é processado como texto de fala e narração. \\
+        \hline
+        Auto Scanlator & A (C opcional) & O MLLM identifica o bloco pela imagem da página; no modo padrão restaura os pixels originais (A) e no modo com modelo de difusão recria a arte traduzida (C). \\
+        \hline
+    \end{tabular}
+    \fonte{elaborada pelo autor.}
+\end{table}
+
+Quanto ao tratamento dos tipos de texto, todas as ferramentas traduzem os diálogos e os comentários e narração. Nas onomatopeias, o Manga Image Translator, o Koharu e o BallonsTranslator alcançam a categoria A, mas esse resultado depende do motor de tradução ou do detector em uso (Tabela~\ref{tab:comparacao-onomatopeias}). Já nos textos escritos sobre objetos da cena, as cinco ferramentas recaem na categoria B, apagando placas e fachadas com inpainting e sobrepondo a tradução com a fonte padrão de diálogo (Tabela~\ref{tab:comparacao-texto-cena}). Nenhuma das cinco ferramentas analisadas atinge a categoria C em qualquer um dos dois tipos. O Auto Scanlator utiliza o modelo de linguagem multimodal para identificar conjuntamente as onomatopeias e os textos escritos sobre objetos da cena, mantendo ambos intactos na página no modo padrão para hardware convencional (categoria A) e oferecendo opcionalmente a recriação gráfica por modelo de difusão (categoria C) (Seções~\ref{sec:escopo} e~\ref{sec:as-difusao}).
+
+A análise comparativa evidencia que, embora as ferramentas de código aberto compartilhem a estrutura geral da pipeline com o LaMa e a tradução por LLMs, nenhuma delas contempla a preservação automática do negrito nas falas nem resolve de forma unificada a preservação de onomatopeias e textos escritos sobre objetos da cena. Essas duas lacunas fundamentam as hipóteses H1 e H2 investigadas neste trabalho (Seção~\ref{sec:problema}).
+
+\chapter{AUTO SCANLATOR}
+\label{cap:auto-scanlator}
+
+Este capítulo descreve a arquitetura e o funcionamento do Auto Scanlator, implementado em Python e operado por linha de comando para execução local em hardware convencional (Seção~\ref{sec:escopo}). O sistema recebe as imagens das páginas de um quadrinho junto com os códigos dos idiomas de origem e de destino e processa cada página por uma pipeline sequencial composta por cinco etapas padrão e uma etapa opcional, compreendendo a detecção e o reconhecimento óptico do texto, a remoção do texto original por inpainting, a detecção do negrito por visão computacional, a tradução e filtragem de blocos por um modelo de linguagem multimodal, a tradução opcional de onomatopeias e textos escritos sobre objetos da cena por modelo de difusão e o letreiramento da página traduzida. A Figura~\ref{fig:pipeline} apresenta o fluxo completo da pipeline, cujas etapas e tecnologias são detalhadas nas seções a seguir.
+
+\begin{figure}[htb]
+    \caption{Pipeline do Auto Scanlator, da página original à página traduzida}
+    \label{fig:pipeline}
+    \centering
+    \includegraphics[width=\linewidth]{imagens/pipeline.png}
+    \fonte{elaborada pelo autor.}
+\end{figure}
+
+\section{DETECÇÃO E RECONHECIMENTO}
+\label{sec:as-deteccao}
+
+A primeira etapa da pipeline recebe a página e o código do idioma de origem e executa a detecção e o reconhecimento óptico em uma única passagem com os modelos da família PP-OCRv6 \cite{zhang2026ppocrv6}, executados por meio do pacote oficial do PaddleOCR para Python \cite{paddleocr}. O pacote seleciona o modelo de reconhecimento conforme o idioma de origem, e a instância é criada uma vez e reaproveitada em todas as páginas da execução. O resultado é uma lista de linhas, cada uma com o texto reconhecido e o quadrilátero que a delimita na página.
+
+As linhas são então agrupadas em blocos, cada bloco correspondendo, em geral, a uma região de texto, como um balão ou um recordatório. O agrupamento une duas linhas quando seus retângulos, previamente expandidos, se intersectam, seus ângulos são próximos e a interseção cobre ao menos metade da altura ou da largura da menor delas. A expansão vertical é maior que a horizontal, o que aproxima as linhas empilhadas de um mesmo balão, e a proximidade entre os ângulos evita a união de linhas com inclinações distintas. A Figura~\ref{fig:deteccao} mostra as linhas detectadas e os blocos formados em uma página.
+
+\begin{figure}[htb]
+    \caption{Linhas de texto detectadas}
+    \label{fig:deteccao}
+    \centering
+    \includegraphics[width=.8\linewidth]{imagens/etapa_deteccao.png}
+    \fonte{Quadrinho \textit{Homem-Grilo: O Escudeiro das Trevas}, de Cadu Simões, com as linhas e os blocos detectados pelo software \textit{Auto Scanlator}.}
+\end{figure}
+
+Cada bloco reúne o texto reconhecido de suas linhas e os polígonos que as delimitam. O texto segue para a tradução, e os polígonos preservam a geometria do texto original, usada para delimitar as regiões removidas pelo inpainting (Seção~\ref{sec:as-inpainting}) e para restituir a posição e o ângulo no letreiramento (Seção~\ref{sec:as-letreiramento}).
+
+\section{INPAINTING}
+\label{sec:as-inpainting}
+
+O inpainting é a etapa que remove o texto original da página, para que o texto traduzido seja inserido sobre uma página limpa. A máscara da remoção vem dos blocos detectados na etapa anterior, cujos polígonos de linha são preenchidos em uma máscara binária e dilatados para cobrir também as bordas dos caracteres. A página original e a máscara são então processadas pelo modelo LaMa \cite{suvorov2022lama} (Seção~\ref{sec:inpainting}) por meio do pacote Python simple-lama-inpainting \cite{simplelamainpainting}, que reconstrói o desenho sob o texto. A Figura~\ref{fig:inpainting} mostra uma página antes e depois da remoção.
+
+Como a máscara cobre apenas as linhas detectadas e uma margem estreita ao redor delas, em vez do balão inteiro, a reconstrução fica restrita às áreas que continham caracteres. O inpainting é executado inicialmente sobre todos os blocos detectados, inclusive as onomatopeias e os textos escritos sobre objetos da cena, porque a página limpa resultante serve de referência de fundo para isolar os caracteres na etapa de detecção do negrito (Seção~\ref{sec:as-atributos}), cujas marcações devem ser enviadas ao modelo de linguagem multimodal. A página original, por sua vez, é mantida tanto para ser enviada ao modelo na etapa de tradução e filtragem quanto para restaurar, após a filtragem, as regiões dos blocos descartados, compondo a imagem mista que segue para o letreiramento (Seções~\ref{sec:as-traducao} e~\ref{sec:as-letreiramento}).
+
+\begin{figure}[htb]
+    \caption{Remoção do texto original por inpainting}
+    \label{fig:inpainting}
+    \centering
+    \includegraphics[width=.8\linewidth]{imagens/etapa_inpaint.png}
+    \fonte{Quadrinho \textit{Homem-Grilo: O Escudeiro das Trevas}, de Cadu Simões, com o texto removido pelo software \textit{Auto Scanlator}.}
+\end{figure}
+
+\section{DETECÇÃO DO NEGRITO}
+\label{sec:as-atributos}
+
+A terceira etapa da pipeline identifica quais palavras do texto original estão grafadas em negrito (Seção~\ref{sec:tipografia}). Essa detecção é realizada por visão computacional por meio de processamento de imagens, sem necessidade de modelo treinado, comparando a espessura média do traço de cada palavra com a das demais palavras detectadas na página.
+
+Os caracteres são isolados pela diferença entre cada recorte da página original e o recorte correspondente da página limpa produzida pelo inpainting (Seção~\ref{sec:as-inpainting}), e a limiarização dessa diferença produz a máscara dos caracteres. Como a referência é o fundo reconstruído, e não uma cor fixa, o método funciona para texto escuro sobre fundo claro e para o inverso. A máscara é então alinhada à horizontal, e as palavras são separadas pelos espaços em branco entre elas, cada uma recebendo o termo correspondente do texto reconhecido.
+
+A espessura de cada palavra é medida sobre o esqueleto dos traços, obtido pelo eixo medial. A transformada de distância dá a distância de cada pixel do texto até o fundo e, sobre o esqueleto, essa distância equivale à metade da largura do traço; a média dessas distâncias, normalizada pela altura dos caracteres do bloco, é a medida da palavra. A referência de peso normal é a mediana das medidas das palavras da página com mais de uma letra, e a palavra é classificada como negrito quando supera essa referência com margem, maior para palavras de uma ou duas letras. Palavras sem medida válida não são classificadas como negrito. A Figura~\ref{fig:negrito} mostra as palavras classificadas como negrito em uma página.
+
+\begin{figure}[htb]
+    \caption{Palavras classificadas como negrito em uma página}
+    \label{fig:negrito}
+    \centering
+    \includegraphics[width=.8\linewidth]{imagens/etapa_negrito.png}
+    \fonte{Quadrinho \textit{Homem-Grilo: O Escudeiro das Trevas}, de Cadu Simões, com as palavras em negrito detectadas pelo software \textit{Auto Scanlator}.}
+\end{figure}
+
+As palavras em negrito são envolvidas pelas etiquetas \texttt{<b>} e \texttt{</b>} no texto do bloco. A tradução deve manter as etiquetas em torno das palavras correspondentes (Seção~\ref{sec:as-traducao}), e o letreiramento usa a variante em negrito da fonte nos trechos marcados (Seção~\ref{sec:as-letreiramento}).
+
+\section{TRADUÇÃO E FILTRAGEM}
+\label{sec:as-traducao}
+
+A tradução e a filtragem dos blocos acontecem em uma única chamada ao modelo de linguagem multimodal Gemma 4 de 12 bilhões de parâmetros, utilizado em sua versão QAT em 4 bits\footnote{A quantização em 4 bits reduz a precisão numérica dos pesos do modelo para diminuir o consumo de memória e viabilizar sua execução em CPU, enquanto a sigla QAT (\textit{Quantization-Aware Training}, ou treinamento consciente de quantização) indica que o modelo foi treinado simulando essa redução de precisão para preservar sua qualidade.} \cite{gemmateam2026gemma4} e executado localmente por meio do motor de inferência llama.cpp \cite{llamacpp}. O modelo recebe a imagem da página e a lista dos blocos detectados, cada um com seu texto, além dos idiomas de origem e de destino. A imagem fornece o contexto visual da página, que o modelo usa para desambiguar o texto e para classificar o tipo de cada bloco, e a unidade de tradução é a página, com todos os blocos enviados juntos.
+
+O prompt define as regras de tradução e de classificação dos blocos (Seção~\ref{sec:escopo}). O modelo traduz todos os blocos detectados e classifica cada um com um atributo booleano (\texttt{art\_text}), distinguindo os blocos de fala e narração (\texttt{false}) das onomatopeias e dos textos escritos sobre objetos da cena (\texttt{true}). Cada bloco é traduzido como um texto único, e não linha a linha, de forma natural em vez de literal, mantendo os nomes próprios exatamente como no original e preservando os recursos estilísticos do autor, como palavras censuradas, travessões de hesitação ou interrupção, pontuação repetida, maiúsculas e minúsculas. O modelo também corrige erros do reconhecimento óptico, como palavras unidas, letras faltantes e linhas fragmentadas, conferindo o texto com a imagem, sem interferir em gírias, dialetos ou grafias intencionais. As etiquetas de negrito do texto original (Seção~\ref{sec:as-atributos}) devem ser mantidas em torno das palavras correspondentes da tradução.
+
+O modelo responde com uma lista em JSON na qual cada item associa o índice de um bloco ao texto traduzido e à indicação booleana de seu tipo. Em ambos os modos de operação, os blocos marcados com \texttt{art\_text} verdadeiro têm suas regiões da máscara restauradas na página limpa a partir dos pixels da página original. No modo padrão de execução, a tradução desses blocos é descartada e eles permanecem intactos na imagem. Quando o modo opcional de tradução por difusão é ativado, tanto a identificação quanto a tradução desses blocos são aproveitadas na etapa seguinte para sua recriação gráfica (Seção~\ref{sec:as-difusao}). Já os blocos classificados como fala e narração seguem com o texto traduzido e os polígonos das linhas para o letreiramento (Seção~\ref{sec:as-letreiramento}).
+
+\section{TRADUÇÃO DE ONOMATOPEIAS E TEXTOS ESCRITOS SOBRE OBJETOS DA CENA}
+\label{sec:as-difusao}
+
+Além do modo padrão que mantém intactos na página as onomatopeias e os textos escritos sobre objetos da cena, o software implementa uma etapa opcional para traduzir e recriar graficamente esses elementos por meio de um modelo de difusão para edição de imagens, ativada pelo parâmetro \texttt{--translate-art-text} na linha de comando. Essa etapa explora o fato de que a chamada ao modelo de linguagem multimodal na etapa anterior já identifica quais blocos da página correspondem a onomatopeias e textos escritos sobre objetos da cena e já fornece sua tradução contextualizada (Seção~\ref{sec:as-traducao}).
+
+Quando esse recurso é acionado, cada bloco classificado com o atributo \texttt{art\_text} verdadeiro não tem sua tradução descartada. O sistema delimita a caixa envolvente dos polígonos do bloco, expande-a até atingir a proporção de aspecto mais próxima das suportadas pelo modelo de difusão, mantendo o bloco centralizado, e recorta esse trecho da página, cujos pixels na região do texto já foram restaurados a partir da página original (Seção~\ref{sec:as-traducao}). O recorte é redimensionado para a resolução de entrada do modelo e enviado, por uma chamada HTTP em JSON a um serviço de geração de imagens a partir de referência visual, ao modelo de difusão Qwen-Image-2.1-Turbo \cite{qwenimage21turbo}, acompanhado de um prompt que instrui a substituir o texto original pelo texto traduzido preservando a fonte, a cor, o ângulo, a perspectiva e o estilo do letreiramento original, e mantendo o restante da cena inalterado. A imagem gerada é então redimensionada ao tamanho do recorte e colada sobre toda a região recortada, substituindo integralmente esse retângulo na página que segue para o letreiramento (Seção~\ref{sec:as-letreiramento}). A Figura~\ref{fig:exemplo-difusao} ilustra o resultado obtido pelo software na tradução de texto escrito sobre objeto da cena com esse recurso.
+
+\begin{figure}[htb]
+    \caption{Exemplo de tradução de texto escrito sobre objeto da cena por modelo de difusão no Auto Scanlator}
+    \label{fig:exemplo-difusao}
+    \centering
+    \includegraphics[width=\linewidth]{imagens/exemplo_difusao.png}
+    \fonte{elaborada pelo autor.}
+\end{figure}
+
+Embora demonstre que a detecção realizada pelo modelo de linguagem multimodal viabiliza a automação completa da adaptação gráfica de todos os tipos de texto da página, o menor modelo de difusão aberto atual capaz de realizar essas alterações com qualidade é o Qwen-Image-2.1-Turbo \cite{qwenimage21turbo}, cuja execução demanda aceleradores gráficos dedicados e é inviável em CPU. Como a premissa arquitetural do Auto Scanlator é operar localmente em hardware convencional restrito a CPU e memória RAM limitada (Seção~\ref{sec:escopo}), essa etapa permanece como demonstração tecnológica opcional no software e aguarda o surgimento de modelos generativos de imagem mais leves para integrar o fluxo padrão e ser avaliada em trabalhos futuros.
+
+\section{LETREIRAMENTO}
+\label{sec:as-letreiramento}
+
+O letreiramento insere o texto traduzido de fala e narração na página limpa, que nesse ponto já está com as regiões de onomatopeias e textos escritos sobre objetos da cena restauradas a partir da página original ou recriadas pelo modelo de difusão (Seções~\ref{sec:as-traducao} e~\ref{sec:as-difusao}). Cada bloco que passa pela filtragem traz o texto traduzido e a geometria das linhas detectadas, de onde vêm a posição e o ângulo do bloco (Seções~\ref{sec:as-deteccao} e~\ref{sec:as-traducao}). As linhas do bloco são reunidas em uma única região pelo contorno convexo de seus polígonos, que serve de máscara para o desenho do texto.
+
+Como o texto traduzido tem extensão diferente do original, o tamanho da fonte é recalculado para preencher a região. O ajuste percorre a máscara de cima para baixo; em cada faixa horizontal, a largura disponível é o trecho da máscara naquela altura, com uma margem interna, e as palavras são encaixadas nela até a linha encher, o que quebra o texto em linhas conforme o formato da região. O maior tamanho em que todas as palavras cabem é o escolhido, e o texto é centralizado horizontalmente em cada linha e verticalmente na região.
+
+Nos blocos inclinados, a máscara é rotacionada para a horizontal, e o ajuste e o desenho acontecem nesse alinhamento. O resultado é rotacionado de volta pelo ângulo do bloco e posicionado no centro da região original, o que restitui a inclinação do texto. Inclinações desprezíveis são tratadas como nulas.
+
+As palavras marcadas com as etiquetas \texttt{<b>} e \texttt{</b>} são desenhadas com a variante em negrito da fonte, e as demais com a variante regular. Conforme delimitado na Seção~\ref{sec:escopo}, o texto é desenhado em preto com contorno branco ou em branco com contorno preto, de acordo com o contraste medido sobre o fundo da região na página limpa. A Figura~\ref{fig:letreiramento} mostra uma página traduzida após o letreiramento no modo padrão de operação.
+
+\begin{figure}[htb]
+    \caption{Página traduzida após o letreiramento}
+    \label{fig:letreiramento}
+    \centering
+    \includegraphics[width=\linewidth]{imagens/etapa_letreiramento.png}
+    \fonte{Quadrinho \textit{Homem-Grilo: O Escudeiro das Trevas}, de Cadu Simões, traduzido do português para o inglês usando o software \textit{Auto Scanlator}.}
+\end{figure}
+
+\chapter{AVALIAÇÃO E RESULTADOS}
+\label{cap:avaliacao}
+
+Este capítulo descreve a construção do conjunto de dados padrão-ouro, o protocolo experimental e os resultados obtidos para verificar as hipóteses H1 e H2 formuladas na Seção~\ref{sec:problema}. A avaliação divide-se em quatro tarefas: a detecção do negrito no texto original por visão computacional e a preservação desse negrito nas palavras traduzidas pelo modelo de linguagem multimodal, referentes à hipótese H1, e a detecção de onomatopeias e a detecção de textos escritos sobre objetos da cena pelo modelo de linguagem multimodal, referentes à hipótese H2.
+
+\section{CONJUNTO DE DADOS PADRÃO-OURO}
+\label{sec:padrao-ouro}
+
+Para estabelecer uma referência confiável na avaliação do sistema, foi construído um conjunto de dados padrão-ouro a partir de páginas das histórias em quadrinhos brasileiras \textit{Homem-Grilo}\footnote{Disponível em \url{[https://homemgrilo.com/](https://homemgrilo.com/)}.} e \textit{Nova Hélade}\footnote{Disponível em \url{[https://novahelade.com/](https://novahelade.com/)}.}, ambas de autoria de Cadu Simões e distribuídas sob licença Creative Commons, traduzidas do português para o inglês. A seleção descartou páginas que contivessem apenas texto de fala e narração sem palavras em negrito, mantendo exclusivamente páginas que apresentassem ao menos um dos três elementos investigados (palavras em negrito, onomatopeias ou textos escritos sobre objetos da cena). Ao todo, o conjunto reúne \attention{N} páginas, sendo \attention{N} de \textit{Homem-Grilo} e \attention{N} de \textit{Nova Hélade}.
+
+Para isolar o desempenho de cada funcionalidade e evitar que falhas ou ausências de etapas anteriores distorçam os resultados, o padrão-ouro é organizado em subconjuntos específicos por tarefa. Uma página selecionada apenas pela presença de palavras em negrito não integra os subconjuntos de avaliação de onomatopeias ou de textos escritos sobre objetos da cena, assim como páginas que contêm apenas onomatopeias ou textos escritos sobre objetos da cena não entram na avaliação do negrito. Além disso, a anotação de cada tarefa restringe-se aos elementos efetivamente capturados pela etapa precedente da pipeline.
+
+Na anotação voltada à detecção do negrito, foram registradas todas as palavras dos blocos de fala e narração corretamente reconhecidas pelo PaddleOCR nas páginas com ocorrência de negrito, identificando a página, o bloco, a linha e a classificação binária de cada palavra como em negrito ou regular segundo a arte original. Palavras com erro de reconhecimento óptico foram excluídas para não penalizar o detector de visão computacional por falhas do OCR. Já o subconjunto destinado a avaliar a preservação do negrito na tradução restringe-se às palavras em que o detector de visão computacional acertou a classificação na etapa anterior, isolando a capacidade do modelo de linguagem multimodal de transferir as etiquetas \texttt{<b>} e \texttt{</b>} para os termos equivalentes em inglês.
+
+Na anotação voltada às onomatopeias e aos textos escritos sobre objetos da cena, foram registrados os polígonos de localização e a categoria real de cada bloco detectado pelo PaddleOCR nas respectivas páginas, independentemente do conteúdo textual transcrito pelo reconhecedor. Onomatopeias e textos escritos sobre objetos da cena presentes no desenho, mas que não foram detectados pelo PaddleOCR na primeira etapa da pipeline (Seção~\ref{sec:as-deteccao}), foram excluídos da anotação. Como a filtragem avalia a classificação realizada pelo modelo de linguagem multimodal sobre os blocos recebidos (Seção~\ref{sec:as-traducao}), um elemento que sequer chegou a ser detectado pelo OCR jamais seria enviado ao modelo e acabaria permanecendo intacto na página sem ter passado pelo classificador, inflando artificialmente o desempenho se fosse incluído.
+
+\section{PROTOCOLO DE AVALIAÇÃO}
+\label{sec:protocolo-avaliacao}
+
+Cada uma das quatro tarefas é avaliada por meio de uma matriz de confusão própria, contabilizando os verdadeiros positivos (VP), falsos positivos (FP), falsos negativos (FN) e verdadeiros negativos (VN) sobre o respectivo subconjunto do padrão-ouro. As três tarefas de detecção são verificadas de forma programática, enquanto a preservação do negrito na tradução é verificada por avaliação humana.
+
+Na detecção do negrito por visão computacional, a unidade de avaliação é a palavra reconhecida nos blocos de fala e narração. Comparando a saída do detector (Seção~\ref{sec:as-atributos}) com a anotação do padrão-ouro, contabiliza-se como verdadeiro positivo a palavra em negrito classificada como negrito; falso positivo, a palavra regular classificada como negrito; falso negativo, a palavra em negrito classificada como regular; e verdadeiro negativo, a palavra regular classificada como regular.
+
+Na preservação do negrito pelo modelo de linguagem multimodal, avaliada sobre o subconjunto de blocos em que o negrito foi corretamente detectado na origem, a correspondência semântica entre as palavras em português e sua tradução em inglês impede a verificação puramente programática, pois uma palavra destacada pode ser traduzida por mais de um termo ou mudar de posição na frase. Por essa razão, a verificação é conduzida por \attention{definir quantidade e perfil dos avaliadores humanos}, que recebem os recortes do quadro original em português e do quadro traduzido para o inglês e julgam, de forma binária para cada palavra do subconjunto, se a ênfase original foi corretamente preservada no texto traduzido. Na matriz de confusão resultante, o verdadeiro positivo corresponde à palavra originalmente em negrito cujo equivalente traduzido recebeu negrito; o falso positivo, à palavra regular cujo equivalente traduzido recebeu negrito indevidamente; o falso negativo, à palavra originalmente em negrito cujo equivalente traduzido perdeu o destaque; e o verdadeiro negativo, à palavra regular cujo equivalente traduzido permaneceu regular.
+
+Na detecção de onomatopeias pelo modelo de linguagem multimodal, a unidade de avaliação é o bloco de texto detectado pelo PaddleOCR nas páginas que contêm onomatopeias, confrontando as onomatopeias com os blocos de fala e narração dessas mesmas páginas. Como o modelo sinaliza a detecção atribuindo o valor verdadeiro ao atributo \texttt{art\_text} do bloco em sua resposta em JSON (Seção~\ref{sec:as-traducao}), contabiliza-se como verdadeiro positivo o bloco de onomatopeia classificado com \texttt{art\_text} verdadeiro; falso positivo, o bloco de fala ou narração indevidamente classificado com \texttt{art\_text} verdadeiro; falso negativo, o bloco de onomatopeia classificado com \texttt{art\_text} falso; e verdadeiro negativo, o bloco de fala ou narração classificado com \texttt{art\_text} falso.
+
+Por fim, a detecção de textos escritos sobre objetos da cena segue o mesmo procedimento programático sobre os blocos detectados pelo PaddleOCR nas páginas que contêm esse tipo de texto, confrontando-os com os blocos de fala e narração dessas páginas. Contabiliza-se como verdadeiro positivo o bloco de texto escrito sobre objeto da cena classificado com \texttt{art\_text} verdadeiro; falso positivo, o bloco de fala ou narração indevidamente classificado com \texttt{art\_text} verdadeiro; falso negativo, o bloco de texto escrito sobre objeto da cena classificado com \texttt{art\_text} falso; e verdadeiro negativo, o bloco de fala ou narração classificado com \texttt{art\_text} falso.
+
+\section{RESULTADOS}
+\label{sec:resultados}
+
+\attention{PREENCHER APÓS OS EXPERIMENTOS: parágrafo apresentando e discutindo os resultados da detecção e da preservação do negrito (H1).}
+
+\begin{table}[htb]
+    \caption{Matriz de confusão da detecção do negrito por visão computacional}
+    \label{tab:matriz-deteccao-negrito}
+    \centering
+    \footnotesize
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{|l|c|c|}
+        \hline
+        \textbf{Padrão-ouro \textbackslash\ Predição} & \textbf{Detectado como negrito} & \textbf{Detectado como regular} \\
+        \hline
+        \textbf{Palavra em negrito} & \attention{VP} & \attention{FN} \\
+        \hline
+        \textbf{Palavra regular} & \attention{FP} & \attention{VN} \\
+        \hline
+    \end{tabular}
+    \fonte{elaborada pelo autor.}
+\end{table}
+
+\begin{table}[htb]
+    \caption{Matriz de confusão da preservação do negrito na tradução pelo MLLM}
+    \label{tab:matriz-preservacao-negrito}
+    \centering
+    \footnotesize
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{|l|c|c|}
+        \hline
+        \textbf{Padrão-ouro \textbackslash\ Tradução} & \textbf{Traduzido em negrito} & \textbf{Traduzido como regular} \\
+        \hline
+        \textbf{Palavra em negrito} & \attention{VP} & \attention{FN} \\
+        \hline
+        \textbf{Palavra regular} & \attention{FP} & \attention{VN} \\
+        \hline
+    \end{tabular}
+    \fonte{elaborada pelo autor.}
+\end{table}
+
+\attention{PREENCHER APÓS OS EXPERIMENTOS: parágrafo apresentando e discutindo os resultados da detecção de onomatopeias e de textos escritos sobre objetos da cena (H2).}
+
+\begin{table}[htb]
+    \caption{Matriz de confusão da detecção de onomatopeias pelo MLLM}
+    \label{tab:matriz-onomatopeias}
+    \centering
+    \footnotesize
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{|l|c|c|}
+        \hline
+        \textbf{Padrão-ouro \textbackslash\ Predição} & \textbf{Detectado (\texttt{art\_text: true})} & \textbf{Fala ou narração (\texttt{art\_text: false})} \\
+        \hline
+        \textbf{Onomatopeia} & \attention{VP} & \attention{FN} \\
+        \hline
+        \textbf{Fala ou narração} & \attention{FP} & \attention{VN} \\
+        \hline
+    \end{tabular}
+    \fonte{elaborada pelo autor.}
+\end{table}
+
+\begin{table}[htb]
+    \caption{Matriz de confusão da detecção de textos escritos sobre objetos da cena pelo MLLM}
+    \label{tab:matriz-texto-cena}
+    \centering
+    \footnotesize
+    \renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{|l|c|c|}
+        \hline
+        \textbf{Padrão-ouro \textbackslash\ Predição} & \textbf{Detectado (\texttt{art\_text: true})} & \textbf{Fala ou narração (\texttt{art\_text: false})} \\
+        \hline
+        \textbf{Texto escrito sobre objeto da cena} & \attention{VP} & \attention{FN} \\
+        \hline
+        \textbf{Fala ou narração} & \attention{FP} & \attention{VN} \\
+        \hline
+    \end{tabular}
+    \fonte{elaborada pelo autor.}
+\end{table}
+
+\chapter{CONCLUSÃO}
+
+\postextual
+
+\bibliography{referencias}
+
+\chapter*{ANEXOS E APÊNDICES}
+\addcontentsline{toc}{chapter}{ANEXOS E APÊNDICES}
+
+\end{document}
