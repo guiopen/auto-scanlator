@@ -496,7 +496,7 @@ Além do modo padrão que preserva intactos na página as onomatopeias e os text
 
 Quando esse recurso é acionado, cada bloco classificado com o atributo \texttt{art\_text} verdadeiro não tem sua tradução descartada. Em vez disso, o sistema delimita a caixa envolvente dos polígonos do bloco, expande-a até atingir a proporção de aspecto mais próxima das suportadas pelo modelo de difusão, mantendo o bloco centralizado, e recorta esse trecho da página, cujos pixels na região do texto já haviam sido restaurados a partir da página original (Seção~\ref{sec:as-traducao}). O recorte é redimensionado para a resolução de entrada do modelo e enviado, por uma chamada HTTP em JSON a um serviço de geração de imagens a partir de referência visual, ao modelo de difusão Qwen-Image-2.1-Turbo \cite{qwenimage21turbo}, acompanhado de um prompt que instrui a substituir o texto original pelo texto traduzido preservando a fonte, a cor, o ângulo, a perspectiva e o estilo do letreiramento original, e mantendo o restante da cena inalterado. A imagem gerada é então redimensionada ao tamanho do recorte e colada sobre toda a região recortada, substituindo integralmente esse retângulo na página que segue para o letreiramento. A Figura~\ref{fig:exemplo-difusao} ilustra o resultado obtido pelo software na tradução de onomatopeias e textos escritos sobre objetos da cena com esse recurso.
 
-\begin{figure}[htb]
+\begin{figure}[H]
     \caption{Exemplo de tradução de texto escrito sobre objeto da cena por modelo de difusão no Auto Scanlator}
     \label{fig:exemplo-difusao}
     \centering
