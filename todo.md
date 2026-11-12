@@ -1,6 +1,10 @@
 ### TEXTO:
 - RE-VERIFICAR TODAS AS FONTES E CITAÇÕES
 - Justificar o proque usar visão computaiconal pra negrito e pq usar llms para onomatopeia
+- Colocar número de páginas do padrão-ouro (total e por obra)
+- Definir quantidade e perfil dos avaliadores humanos
+- Preencher resultados e 4 matrizes de confusão (H1 e H2) e atualizar resumo/abstract
+- Escrever conclusão final
 
 ### CODIGO:
 - estreitar condições de agrupamento (testar ocm iamgem 24 e 29, considerar line height tambem)
