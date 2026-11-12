@@ -3,99 +3,219 @@
     openright,
     oneside,
     a4paper,
+    chapter=TITLE,
+    section=TITLE,
     english,
-    brazilian
+    brazilian,
+    brazil
 ]{abntex2}
+
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{helvet}
 \renewcommand{\familydefault}{\sfdefault}
+\usepackage[left=3cm,top=3cm,right=2cm,bottom=2cm]{geometry}
 \usepackage{indentfirst}
 \usepackage{color}
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{microtype}
-\usepackage[alf]{abntex2cite}
+\usepackage[alf,abnt-emphasize=bf]{abntex2cite}
 \usepackage{enumitem}
 \usepackage{hyperref}
-
-\renewcommand{\ABNTEXchapterfont}{\bfseries}
-\renewcommand{\ABNTEXsectionfont}{\bfseries}
-\renewcommand{\ABNTEXsubsectionfont}{\bfseries}
 
 %% Marcações de revisão - Retirar na versão final
 \newcommand{\attention}[1]{\textcolor{red}{#1}} 
 \newcommand{\propFileto}[1]{\textcolor{blue}{#1}} 
 \newcommand{\propGuilheme}[1]{\textcolor{magenta}{#1}}
 
-\renewcommand{\chapnumfont}{\large\bfseries}
-\renewcommand{\chaptitlefont}{\large\bfseries}
-\setsecheadstyle{\normalsize\bfseries}
-\setsubsecheadstyle{\normalsize\bfseries}
-\setsubsubsecheadstyle{\normalsize\bfseries}
-\setlength{\parskip}{6pt}
+%% Configurações de aparência (padrão ufscthesisx / BU-UFSC)
+\renewcommand{\ABNTEXchapterfont}{\bfseries}
+\renewcommand{\ABNTEXchapterfontsize}{\large}
+\renewcommand{\ABNTEXsectionfont}{\bfseries}
+\renewcommand{\ABNTEXsectionfontsize}{\normalsize}
+\renewcommand{\ABNTEXsubsectionfont}{\bfseries}
+\renewcommand{\ABNTEXsubsectionfontsize}{\normalsize}
+\renewcommand{\ABNTEXsubsubsectionfont}{\bfseries}
+\renewcommand{\ABNTEXsubsubsectionfontsize}{\normalsize}
 
-\titulo{Auto Scanlator: Sistema Inteligente para Tradução e Letreiramento Automatizados de Histórias em Quadrinhos}
+\setsecheadstyle{\ABNTEXsectionfont\ABNTEXsectionfontsize\ABNTEXsectionupperifneeded}
+\setsubsecheadstyle{\ABNTEXsubsectionfont\ABNTEXsubsectionfontsize\ABNTEXsubsectionupperifneeded}
+\setsubsubsecheadstyle{\ABNTEXsubsubsectionfont\ABNTEXsubsubsectionfontsize\ABNTEXsubsubsectionupperifneeded}
+
+\setlength{\beforechapskip}{0pt}
+\setlength{\midchapskip}{15pt}
+\setlength{\afterchapskip}{15pt}
+\setlength{\parskip}{0.0cm}
+\setlength{\parindent}{1.5cm}
+\OnehalfSpacing
+
+\cftsetindents{part}{0em}{3em}
+\cftsetindents{chapter}{0em}{3em}
+\cftsetindents{section}{0em}{4.3em}
+\cftsetindents{subsection}{0em}{5.2em}
+\cftsetindents{subsubsection}{0em}{5.1em}
+
+%% Dados do trabalho conforme ufscthesisx
 \autor{Guilherme do Amaral Alves}
-\local{Florianópolis}
-\data{2027/2}
-\orientador{Prof. Renato Fileto}
+\titulo{Auto Scanlator: Sistema Inteligente para Tradução e Letreiramento Automatizados de Histórias em Quadrinhos}
+\orientador[Orientador]{Prof. Renato Fileto, Dr.}
+\local{Florianópolis, Santa Catarina -- Brasil}
+\data{7 de dezembro de 2026}
+\newcommand{\imprimirano}{2026}
+\newcommand{\imprimircentro}{INE -- Departamento de Informática e Estatística, CTC -- Centro Tecnológico}
+\newcommand{\imprimirprograma}{Curso de Graduação em Sistemas de Informação}
+\newcommand{\imprimirformacao}{Bacharel em Sistemas de Informação}
+\newcommand{\imprimircoordenador}{Prof. José Eduardo de Lucca}
 \instituicao{Universidade Federal de Santa Catarina}
 \tipotrabalho{Trabalho de Conclusão de Curso}
-\preambulo{Trabalho de conclusão de curso apresentado ao Departamento de Informática e Estatística da Universidade Federal de Santa Catarina como requisito parcial para a obtenção do grau de Bacharel em Sistemas de Informação.}
+\preambulo{\imprimirtipotrabalho~submetido ao \imprimirprograma~do \imprimircentro~da \imprimirinstituicao~para a obtenção do título de \imprimirformacao.}
+
+%% Layout da Capa e Folha de Rosto no padrão UFSC
+\makeatletter
+\renewcommand{\imprimircapa}{%
+  \begin{capa}%
+    \center
+    {\ABNTEXchapterfont\large\MakeUppercase{\imprimirinstituicao}\par}
+    {\ABNTEXchapterfont\large\MakeUppercase{\imprimircentro}\par}
+    {\ABNTEXchapterfont\large\MakeUppercase{\imprimirprograma}\par}
+    \vspace*{3cm}
+    {\ABNTEXchapterfont\large\imprimirautor\par}
+    \vfill
+    {\ABNTEXchapterfont\Large\imprimirtitulo\par}
+    \vfill
+    {\large Florianópolis\par}
+    {\large\imprimirano\par}
+    \vspace*{1cm}
+  \end{capa}
+}
+
+\renewcommand{\folhaderostocontent}{
+  \begin{center}
+    {\ABNTEXchapterfont\large\imprimirautor\par}
+    \vspace*{\fill}\vspace*{\fill}
+    {\ABNTEXchapterfont\Large\imprimirtitulo\par}
+    \vspace*{\fill}
+    \abntex@ifnotempty{\imprimirpreambulo}{%
+      \hspace{.45\textwidth}
+      \begin{minipage}{.5\textwidth}
+        \SingleSpacing
+        \imprimirpreambulo
+      \end{minipage}%
+      \vspace*{\fill}
+    }%
+    {\large\imprimirorientadorRotulo~\imprimirorientador\par}
+    \vspace*{\fill}
+    {\large Florianópolis\par}
+    {\large\imprimirano\par}
+    \vspace*{1cm}
+  \end{center}
+}
+\makeatother
+
+\interfootnotelinepenalty=10000
+\emergencystretch=5em
 
 \begin{document}
 \selectlanguage{brazil}
+\raggedbottom
 \frenchspacing
 
-\imprimircapa
-\imprimirfolhaderosto
+\pretextual
 
-\begin{folhadeaprovacao}
-  \begin{center}
-    {\ABNTEXchapterfont\large\imprimirautor}
+\imprimircapa
+
+\imprimirfolhaderosto*{}
+
+\begin{fichacatalografica}
     \vspace*{\fill}
     \begin{center}
-      \ABNTEXchapterfont\bfseries\Large\imprimirtitulo
+        Catalogação na fonte pela Biblioteca Universitária da Universidade Federal de Santa Catarina.
+        % Na entrega final para a BU, substitua este ambiente por: \includepdf{Ficha_Catalografica.pdf}
+    \end{center}
+\end{fichacatalografica}
+\cleardoublepage
+
+\begin{folhadeaprovacao}
+    \begin{center}
+        {\imprimirautor}
+        \vspace*{\fill}
+        \begin{center}
+            \ABNTEXchapterfont\bfseries\MakeUppercase{\imprimirtitulo}
+        \end{center}
+        \vspace*{\fill}
+        \begin{minipage}{\textwidth}
+            Este(a) \imprimirtipotrabalho~foi julgado adequado(a) para obtenção do Título de \imprimirformacao~e foi aprovado em sua forma final pelo \imprimirprograma~do \imprimircentro~da \imprimirinstituicao.
+        \end{minipage}%
     \end{center}
     \vspace*{\fill}
-    \hspace{.45\textwidth}
-    \begin{minipage}{.5\textwidth}
-      \imprimirpreambulo
-    \end{minipage}
+    \begin{center}
+        \imprimirlocal, \imprimirdata.
+    \end{center}
     \vspace*{\fill}
-  \end{center}
-  \begin{center}
-    Orientador: \imprimirorientador
-  \end{center}
-  \vspace*{\fill}
-  \begin{center}
-    Banca examinadora:
-  \end{center}
-  \vspace*{\fill}
-  \rule{8cm}{0.4pt}
-  \vspace*{\fill}
-  \rule{8cm}{0.4pt}
-  \vspace*{\fill}
+    \assinatura{%
+        \textbf{\imprimircoordenador} \\
+        Coordenador(a) do \imprimirprograma
+    }
+    \vspace*{\fill}
+    \begin{flushleft}
+        \textbf{Banca Examinadora:}
+    \end{flushleft}
+    \vspace*{\fill}
+    \assinatura{%
+        \textbf{\imprimirorientador} \\ \imprimirorientadorRotulo\\
+        \imprimirinstituicao~--~UFSC
+    }
+    \assinatura{%
+        \textbf{José Eduardo de Lucca} \\
+        \imprimirinstituicao~--~UFSC
+    }
+    \assinatura{%
+        \textbf{Elder Rizzon Santos} \\
+        \imprimirinstituicao~--~UFSC
+    }
 \end{folhadeaprovacao}
+\cleardoublepage
 
-\begin{resumo}
+\setlength{\absparsep}{18pt}
+
+\begin{resumo}[Resumo]
+\SingleSpacing
 Os sistemas atuais de tradução automatizada de histórias em quadrinhos tratam todo texto detectado da mesma forma durante o letreiramento, etapa de inserção do texto traduzido na página. Descartam o negrito, frequentemente usado nas falas para indicar ênfase e volume de voz, e apagam elementos textuais que fazem parte do próprio desenho, como onomatopeias e textos escritos sobre objetos da cena (a exemplo de placas e fachadas), para sobrescrevê-los com tipografia comum. Para resolver esses problemas, este trabalho propõe o desenvolvimento do Auto Scanlator, um sistema de tradução automatizada de histórias em quadrinhos com foco em (i) preservação do negrito no texto de fala e narração e (ii) detecção de onomatopeias e de textos escritos sobre objetos da cena para mantê-los intactos na imagem ou, opcionalmente, redesenhá-los traduzidos com um modelo de difusão de modo a manter a fidelidade gráfica com o original. O sistema organiza-se em uma pipeline sequencial que cobre desde a detecção e o reconhecimento óptico de texto em cada página até a remoção do texto original por inpainting, a identificação do negrito por visão computacional, a tradução e filtragem de blocos por um modelo de linguagem multimodal e o letreiramento do texto traduzido. O sistema utiliza exclusivamente tecnologias livres e executa sua pipeline principal localmente em hardware convencional. Como resultados parciais, foram concluídas a análise comparativa de cinco ferramentas de código aberto, a implementação completa do software e a definição do protocolo experimental. Até o final do trabalho, espera-se concluir a anotação do conjunto de dados padrão-ouro e avaliar quantitativamente a detecção e a preservação do negrito e a detecção de onomatopeias e de textos escritos sobre objetos da cena.
 
 \textbf{Palavras-chave}: Histórias em quadrinhos. Tradução automática. Letreiramento. Visão computacional. Modelos de linguagem multimodais.
 \end{resumo}
 
+\cleardoublepage
+
+\begin{otherlanguage*}{english}
+\begin{resumo}[Abstract]
+\SingleSpacing
+Current automated comic book translation systems treat all detected text equally during lettering, the stage of inserting translated text onto the page. They discard boldface, frequently used in dialogue to indicate emphasis and voice volume, and erase textual elements that are part of the artwork itself, such as onomatopoeias and text written on scene objects (such as signs and storefronts), overwriting them with standard typography. To solve these problems, this work proposes the development of Auto Scanlator, an automated comic book translation system focused on (i) preserving boldface in speech and narration text and (ii) detecting onomatopoeias and text written on scene objects to keep them intact in the image or, optionally, redraw them translated using a diffusion model so as to maintain graphical fidelity to the original. The system is organized into a sequential pipeline covering optical text detection and recognition on each page, original text removal via inpainting, boldface identification via computer vision, block translation and filtering by a multimodal language model, and lettering of the translated text. The system exclusively uses open-source technologies and executes its main pipeline locally on conventional hardware. As partial results, the comparative analysis of five open-source tools, the complete software implementation, and the definition of the experimental protocol have been concluded. By the end of this work, it is expected to complete the annotation of the gold-standard dataset and quantitatively evaluate boldface detection and preservation, as well as the detection of onomatopoeias and text written on scene objects.
+
+\textbf{Keywords}: Comics. Machine translation. Lettering. Computer vision. Multimodal language models.
+\end{resumo}
+\end{otherlanguage*}
+\cleardoublepage
+
+\begingroup
+\hypersetup{hidelinks}
+
 \pdfbookmark[0]{\listfigurename}{lof}
-\listoffigures*
+{\renewcommand{\addvspace}[1]{}\listoffigures*}
 \cleardoublepage
 
 \pdfbookmark[0]{\listtablename}{lot}
-\listoftables*
+{\renewcommand{\addvspace}[1]{}\listoftables*}
 \cleardoublepage
 
-\pdfbookmark[0]{\contentsname}{toc}
-\tableofcontents*
+\begin{KeepFromToc}
+    \pdfbookmark[0]{\contentsname}{toc}
+    \raggedbottom
+    \tableofcontents*
+\end{KeepFromToc}
 \cleardoublepage
+\endgroup
 
 \textual
 
@@ -596,8 +716,5 @@ Por fim, a detecção de textos escritos sobre objetos da cena segue o mesmo pro
 \postextual
 
 \bibliography{referencias}
-
-\chapter*{ANEXOS E APÊNDICES}
-\addcontentsline{toc}{chapter}{ANEXOS E APÊNDICES}
 
 \end{document}
